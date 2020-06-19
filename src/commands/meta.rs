@@ -140,6 +140,7 @@ async fn info_command(ctx: &Context, msg: &Message) -> CommandResult {
 #[command("setprefix")]
 #[num_args(1)]
 #[required_permissions(ADMINISTRATOR)]
+#[only_in("guilds")]
 async fn set_prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let prefix = args.message();
 
