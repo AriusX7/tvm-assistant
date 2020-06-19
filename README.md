@@ -13,11 +13,11 @@
 <p align="center">
   <a href="#introduction">Introduction</a>
   •
+  <a href="#features">Features</a>
+  •
   <a href="#documentation">Documentation</a>
   •
   <a href="#self-hosting">Self Hosting</a>
-  •
-  <a href="#features">Features</a>
   •
   <a href="#credits">Credits</a>
 </p>
@@ -27,6 +27,20 @@
 TvM Assistant is a Discord bot with utility commands to make hosting and playing TvMs easier. You can invite it to your server by using [this link](https://discord.com/api/oauth2/authorize?client_id=680383600725590020&permissions=268494928&scope=bot). Inviting the bot will give it `Manage Channels`, `Manage Roles`, `Manage Messages`, `Add Reactions` and `Embed Links` permissions in addition to `Read` and `Send` messages perm.
 
 TvM Assistant is written in [Rust](https://www.rust-lang.org), using the in-development `await` branch of [serenity](https://github.com/Lakelezz/serenity/tree/await).
+
+## Features
+
+- Creates necessary setup roles and channels
+- In-built logging which detects and ignores private channels
+- Manages sign ups, sign outs and replacements
+- Supports quick creation of player, mafia and spectator chats
+- Manages cycle channels
+- Relays night actions to a single host-only channel
+- Vote counts and time since day/night started
+- Notes to keep track of the game
+- And more!
+
+Suggest a feature by sending me a message on Discord (`Arius#5544`).
 
 ## Documentation
 
@@ -157,20 +171,6 @@ This process will take a long time to finish. But once it is done, you'll simply
 ```$ cargo run --release```
 
 to run the bot. Whenever you shutdown your bot, you'll have to re-run it using the above command. Running it will be almost instantaneous.
-
-## Features
-
-- Creates necessary setup roles and channels
-- In-built logging which detects and ignores private channels
-- Manages sign ups, sign outs and replacements
-- Supports quick creation of player, mafia and spectator chats
-- Manages cycle channels
-- Relays night actions to a single host-only channel
-- Vote counts and time since day/night started
-- Notes to keep track of the game
-- And more!
-
-Suggest a feature by sending me a message on Discord (`Arius#5544`).
 
 ## Credits
 
