@@ -210,10 +210,6 @@ Displays log settings.
 
 These commands require administrator permission or the host role, unless otherwise stated.
 
-### `-host <user>`
-
-Gives the specified user `Host` role.
-
 ### `-rand <roles>`
 
 Randomly assigns a role from the pool to a person with the `Player` role. The command should follow the pattern used in this example: `-rand role1, role2, role3, ...`. Number of players should be equal to number of roles. You can duplicate roles.
