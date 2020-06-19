@@ -55,5 +55,6 @@ All self-hosting instructions can be found [here](self-hosting).
 
 ## Credits
 
-- Town of Salem: Bot logo
-- [Trusty-cogs](https://github.com/TrustyJAID/Trusty-cogs): Logging events
+- [Town of Salem](https://www.blankmediagames.com): Bot logo and README wallpaper
+- [serenity](https://github.com/serenity-rs/serenity): The library used to create TvM Assistant
+- And all the very helpful people on [serenity](https://discord.gg/WBdGJCc) and [The Rust Programming Language](https://discord.gg/rust-lang) Discord servers.
