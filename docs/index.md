@@ -27,12 +27,11 @@ TvM Assistant is a Discord bot with utility commands to make hosting TvMs easier
 
 ## Features
 
-- Creates necessary setup roles and channels
-- In-built logging which detects and ignores private channels
-- Manages sign ups, sign outs and replacements
-- Supports quick creation of player, mafia and spectator chats
-- Manages cycle channels
-- Relays night actions to a single host-only channel
+- Setup roles and channel creation
+- Management of sign-ups, sign-outs, spectators and replacements
+- Day/night cycle management
+- In-built logging to detect and ignore private channels
+- Quick creation of player, mafia and spectator chats
 - Vote counts and time since day/night started
 - And more!
 
