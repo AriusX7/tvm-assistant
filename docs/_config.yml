@@ -1,0 +1,4 @@
+theme: jekyll-theme-merlot
+title: TvM Assistant
+description: A Discord bot with utility commands to make hosting and playing TvMs easier.
+logo: /assests/logo.png

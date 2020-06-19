@@ -1,0 +1,6 @@
+/target
+Cargo.lock
+.env
+.vscode
+.DS_STORE
+config.toml
