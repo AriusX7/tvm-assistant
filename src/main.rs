@@ -261,14 +261,14 @@ pub async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
             if let Some(p) = data.prefix {
                 p
             } else {
-                "!".to_string()
+                "-".to_string()
             }
         } else {
             error!("I couldn't query the database for getting guild prefix.");
-            "!".to_string()
+            "-".to_string()
         }
     } else {
-        prefix = "!".to_string();
+        prefix = "-".to_string();
     };
 
     Some(prefix)
