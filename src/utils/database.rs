@@ -3,7 +3,7 @@
 use crate::ConnectionPool;
 use log::error;
 use serenity::{
-    model::Guild,
+    model::prelude::Guild,
     prelude::Context
 };
 use sqlx::postgres::PgPool;
