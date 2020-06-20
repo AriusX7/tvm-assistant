@@ -1,9 +1,10 @@
 // Commands related to TvM's setup are defined here.
 
 use crate::{
-    utils::{checks::*, constants::EMBED_COLOUR, converters::*, predicates::yes_or_no_pred},
+    utils::{checks::*, constants::EMBED_COLOUR, converters::*, predicates::yes_or_no_pred, database::initialize_tables},
     ConnectionPool,
 };
+use log::error;
 use serde::{Deserialize, Serialize};
 use serenity::{
     framework::standard::{
@@ -878,18 +879,32 @@ pub async fn unlock_settings(ctx: &Context, msg: &Message) -> CommandResult {
 #[command("settings")]
 #[aliases("show")]
 pub async fn tvm_settings(ctx: &Context, msg: &Message) -> CommandResult {
+    let guild = match msg.guild(ctx).await {
+        Some(i) => i,
+        None => return Err(CommandError::from("Couldn't fetch details of this server.")),
+    };
+
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
-    let settings = sqlx::query_as_unchecked!(
+    let settings: Settings = match sqlx::query_as_unchecked!(
         Settings,
         "
         SELECT * FROM config WHERE guild_id = $1;
         ",
-        msg.guild_id.unwrap().0 as i64
+        guild.id.0 as i64
     )
     .fetch_one(pool)
-    .await?;
+    .await
+    {
+        Ok(s) => s,
+        Err(_) => {
+            error!("config table wasn't initialized for guild with ID {}.", guild.id.0 as i64);
+            // Initialize all three tables.
+            initialize_tables(&ctx, &guild).await;
+            return Ok(());
+        }
+    };
 
     let mut fields = Vec::new();
 
