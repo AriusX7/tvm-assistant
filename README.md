@@ -64,7 +64,7 @@ You can follow [this guide on discord.py](https://discordpy.readthedocs.io/en/la
 
 Once you have all the prerequisites, you'll need to follow these steps:
 
-Firstly, you'd need to create PostgreSQL database and tables. Make sure you have installed PostgreSQL correctly and added it to your `PATH`. Instructions to that so can be found on Google. [DigitalOcean has a very informative guide for installing PostgreSQL on Ubuntu 18.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04).
+Firstly, you'd need to create PostgreSQL database and tables. Make sure you have installed PostgreSQL correctly and added it to your `PATH`. Instructions to do that can be found on Google. [DigitalOcean has a very informative guide for installing PostgreSQL on Ubuntu 18.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04).
 
 To see if you have PostgreSQL, run this command in terminal:
 
@@ -76,7 +76,7 @@ Now, you need to create a database. It can be done by using the following comman
 
 ```$ createdb database_name```
 
-There are some best practices involved with create databases. You can find those and a ways to fix common issues with that command on [this page](https://www.postgresql.org/docs/12/tutorial-createdb.html).
+There are some best practices involved with create databases. You can find those and ways to fix common issues with that command on [this page](https://www.postgresql.org/docs/12/tutorial-createdb.html).
 
 After creating the database, you will need to access it. It is done by using:
 
@@ -133,13 +133,13 @@ Make sure you use these commands **inside** `psql` .
 Next, you'll need to download the source code of this bot. It can be done in one of the following two ways:
 
 - You can download zip folder of this repository by [clicking here](https://codeload.github.com/AriusX7/tvm-assistant/zip/master).
-- You can use [Git](https://git-scm.com) to clone this repository locally by running `$ git clone https://github.com/AriusX7/tvm-assistant.git` command in command prompt (Windows) or terminal (Unix-like).
+- You can use [Git](https://git-scm.com) to clone this repository locally by running `$ git clone https://github.com/AriusX7/tvm-assistant.git` command in terminal.
 
 After downloading the repository/folder and unzipping it, `cd` into it. `cd` is a terminal command to change the current directory/folder. You'll need to edit one file before building the bot. You can do that by opening the folder with your choice of text editor, like [Visual Studio Code](https://code.visualstudio.com/download), [Atom](https://atom.io), and [Sublime Text](https://www.sublimetext.com), if you're hosting the bot on a computer. If you're using a VPS, you'll probably need to use the terminal. Using the terminal, first run this command:
 
 ```$ mv .env.example .env```
 
-Next, use `nano`, `vim` or any other terminal editors to edit the `.env` file. Put your bot's token, which you can obtain [here](https://discord.com/developers/applications), after `DISCORD_TOKEN=`. Don't leave and spaces or wrap it up in quotes. You can leave the `RUST_LOG` field as it is, or change it if you want to customize the logging. Lastly, you'd need to enter your Postgres database url. The URL has the following fields:
+Next, use `nano`, `vim` or any other terminal editors to edit the `.env` file. Put your bot's token, which you can obtain [here](https://discord.com/developers/applications), after `DISCORD_TOKEN=`. Don't leave any spaces or wrap it up in quotes. You can leave the `RUST_LOG` field as it is, or change it if you want to customize the logging. Lastly, you'd need to enter your Postgres database url. The URL has the following fields:
 
 ```py
 username # your user name
@@ -149,7 +149,7 @@ host # host_name, it is usually "localhost"
 port # the port number, it is usually "5432"
 ```
 
-Instructions to find these values can be easily found on Google. Once you have all the values, structure it as follows:
+Instructions to find these values can be easily found on Google. Once you have all the values, structure the URL as follows:
 
 ```postgres://username:password@host:port/database_name```
 
