@@ -104,10 +104,6 @@ Sets `channel` as the sign-ups channel.
 
 *The bot asks for confirmation before making changes.*
 
-### `-tvm hostchannel`
-
-Creates a channel for hosts. **The bot can see this channel.**
-
 ### `-tvm setchannels`
 
 Creates `signups` and `nachannel` channels and sets them as appropriate automatically.
