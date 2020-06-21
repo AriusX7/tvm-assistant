@@ -254,7 +254,7 @@ async fn send_command_help(
 
     let desc = parse_text(
         command.options.desc.unwrap_or("No description."),
-        &main_prefix,
+        &prefix,
         &user.name,
     );
 
