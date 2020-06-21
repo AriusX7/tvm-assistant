@@ -55,8 +55,6 @@ Use [`-tvm setchannels`](commands-reference#-tvm-setchannels) command. It will c
 
 Users can sign-up as a player, spectator or replacement by using [`-in`](commands-reference#-in-ignored), [`-spec`](commands-reference#-spec-ignored) or [`repl`](commands-reference#-repl-ignored) commands in the **sign-ups** channel.
 
-You can also make the bot create a `host` channel by using [`-tvm hostchannel`](commands-reference#-tvm-hostchannel) command. **The bot will able to see this channel.**
-
 ## Step 4
 
 Use the [`-logchannel [channel]`](commands-reference#-logchannel-channel) command to set a channel as log channel. If you just use `-logchannel`, the bot will create a new channel called `log`. You can also set a channel you've already created as the log channel. Simply mention the channel in the command like this: `-logchannel #channel-name`. All message edits and deletes from **public** channels will be logged in the log channel. [More about logging.](commands-reference#logging)
