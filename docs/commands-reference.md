@@ -98,7 +98,7 @@ These commands require administrator permission or the host role.
 
 Sets `channel` as the channel where night actions are relayed.
 
-### `-tvm signup <channel>`
+### `-tvm signups <channel>`
 
 Sets `channel` as the sign-ups channel.
 
