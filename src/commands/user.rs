@@ -1283,7 +1283,7 @@ async fn night_action(ctx: &Context, msg: &Message, args: Args) -> CommandResult
 /// in the PDF.
 /// ```
 ///
-/// For a complete guide, see this page:
+/// For a complete guide, see [this page](https://ariusx7.github.io/tvm-assistant/formatting)
 #[command("format")]
 #[min_args(1)]
 async fn format_text(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
