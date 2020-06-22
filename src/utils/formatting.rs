@@ -1,7 +1,17 @@
 // Various functions to format text and files.
 
-use serenity::http::AttachmentType;
-use std::borrow::Cow;
+use comrak::{markdown_to_html, ComrakOptions};
+use log::error;
+use serenity::{
+    http::AttachmentType,
+    model::prelude::Message
+};
+use std::{borrow::Cow, io::Write, fs, path::Path};
+use tokio::process::Command;
+
+lazy_static! {
+    static ref CSS: String = fs::read_to_string("style.css").unwrap();
+}
 
 pub(crate) struct PagifyOptions<'a> {
     delims: &'a [&'a str],
@@ -136,8 +146,6 @@ pub(crate) fn text_to_file<'a, S: ToString, T: ToString>(
     }
 }
 
-use serenity::model::prelude::Message;
-
 /// Returns string after capitalizing first letter and making all others lowercase.
 /// Only works for strings with ASCII letters (a-z | A-Z).
 pub(crate) fn capitalize(s: &str) -> String {
@@ -159,4 +167,87 @@ pub(crate) fn clean_user_mentions(message: &Message) -> String {
     }
 
     result
+}
+
+/// Takes `CommonMark` Markdown text as input and returns customised PDF and JPEG files.
+///
+/// This uses the `wkhtmltopdf` and `wkhtmltoimage` command-line tools.
+/// The input Markdown is converted to HTML, which is then sanitized. A custom CSS (`style.css`)
+/// is added to the HTML. The HTML is then used to create a `PDF` and a `JPEG` image.
+///
+/// Three files are created as side-effects:
+///    * `foo.html`
+///    * `out.pdf`
+///    * `out.jpeg`
+///
+/// They must be handled by the calling function. They cannot be deleted before
+/// they are sent as a message.
+pub(crate) async fn markdown_to_files<'a>(
+    text: &str
+) -> (Option<AttachmentType<'a>>, Option<AttachmentType<'a>>) {
+    let html = markdown_to_html(
+        text,
+        &ComrakOptions {
+            github_pre_lang: true,
+            ext_table: true,
+            ext_strikethrough: true,
+            ext_superscript: true,
+            ext_autolink: true,
+            ..Default::default()
+        }
+    );
+
+    let mut file = match fs::File::create("foo.html") {
+        Ok(f) => f,
+        Err(_) => {
+            error!("Error creating `foo.html`.");
+            return (None, None);
+        }
+    };
+
+    let _ = write!(file, "<style>{}</style>{}", *CSS, ammonia::clean(&html));
+
+    let image_child = Command::new("wkhtmltoimage")
+        // Max quality
+        .args(&["--quality", "100"])
+        // No output on stdout
+        .arg("--quiet")
+        // Input html file
+        .arg("foo.html")
+        // Output jpeg
+        .arg("out.jpeg")
+        .spawn();
+
+    let pdf_child = Command::new("wkhtmltopdf")
+        // No margins
+        .args(&["-L", "0", "-R", "0", "-T", "0", "-B", "0"])
+        // No output on stdout
+        .arg("--quiet")
+        // Input html file
+        .arg("foo.html")
+        // Output pdf
+        .arg("out.pdf")
+        .spawn();
+
+    let image = match image_child {
+        Ok(c) => {
+            match c.await {
+                Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.jpeg"))),
+                _ => None
+            }
+        },
+        Err(_) => None
+    };
+
+    let pdf = match pdf_child {
+        Ok(c) => {
+            match c.await {
+                Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.pdf"))),
+                _ => None
+            }
+        },
+        Err(_) => None
+    };
+
+    (pdf, image)
 }

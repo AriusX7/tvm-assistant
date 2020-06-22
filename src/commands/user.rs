@@ -8,12 +8,13 @@ use crate::{
     },
     utils::{
         converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role},
-        formatting::{capitalize, clean_user_mentions},
+        formatting::{capitalize, clean_user_mentions, markdown_to_files},
     },
     ConnectionPool,
 };
 use chrono::{offset::Utc, Duration};
 use indexmap::IndexMap;
+use log::error;
 use regex::Regex;
 use serenity::{
     framework::standard::{
@@ -28,7 +29,7 @@ use serenity::{
     utils::{content_safe, ContentSafeOptions},
 };
 use sqlx::types::Json;
-use std::{borrow::Cow, collections::HashMap, fmt::Write};
+use std::{borrow::Cow, collections::HashMap, fmt::Write, fs};
 
 struct SignSettings {
     cycle: Json<Cycle>,
@@ -1244,6 +1245,107 @@ async fn night_action(ctx: &Context, msg: &Message, args: Args) -> CommandResult
     Ok(())
 }
 
+/// Parses supplied CommonMark Markdown text and attaches formatted JPEG and PDF.
+///
+/// **Usage:** `[p]format <message>`
+///
+/// This command takes CommonMark-flavoured Markdown and attaches a nicely formatted
+/// JPEG image and a PDF. This allows users to use richer Markdown than supported by Discord.
+///
+/// Some extra features supported:
+///    - Nested quotes
+///    - Tables
+///    - Lists
+///    - Headings (6 levels)
+///    - Hyperlinks (they only work in PDFs)
+///    - Horizontal rules
+///
+/// Syntax to use these features:
+///
+/// ```md
+/// # Level 1 Heading
+/// ## Level 2 Heading
+/// ###### Level 6 Heading (can't go any deeper)
+///
+/// > This is a single quote.
+/// >> This quote is inside the first quote.
+/// >>> This is inside the second quote. Three nest layers!
+///
+/// > Back to single quote. The blank line above is required.
+///
+/// And finally, no quotes. Again, the blank line is required.
+///
+/// Let's add a horizontal rule below.
+/// ***
+/// That was a horizontal rule.
+///
+/// Now, we'll add a [hyperlink](https://www.google.com/). This is only clickable
+/// in the PDF.
+/// ```
+///
+/// For a complete guide, see this page:
+#[command("format")]
+#[min_args(1)]
+async fn format_text(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let text = args.message();
+
+    // The conversion process is very expensive. Before converting, let's make sure
+    // we can attach images and files.
+    match msg.channel(&ctx.cache).await {
+        Some(c) => {
+            if let Some(channel) = c.guild() {
+                let user_id = &ctx.cache.current_user_id().await;
+                if let Ok(perms) = channel.permissions_for_user(&ctx.cache, user_id).await {
+                    if !perms.attach_files() {
+                        msg.channel_id.say(&ctx.http, "I cannot attach files in this channel.").await?;
+                        return Ok(());
+                    }
+                }
+            }
+        },
+        None => ()
+    }
+
+    // We'll initiate typing so that the user doesn't think bot went offline or broke.
+    // If there is any error with this, we'll handle it silently.
+    let _ = msg.channel_id.broadcast_typing(&ctx.http).await;
+
+    let files = match markdown_to_files(text).await {
+        (Some(p), Some(i)) => vec![i, p],
+        (Some(p), None) => vec![p],
+        (None, Some(i)) => vec![i],
+        (None, None) => return Ok(())
+    };
+
+    msg.channel_id.send_files(&ctx.http, files, |m| {
+        m.content(format!("{} sent the following:", msg.author.mention()));
+
+        m
+    }).await?;
+
+    clean_files();
+
+    Ok(())
+}
+
+/// Deletes files created by `markdown_to_files` function.
+fn clean_files() {
+    // `foo.html`
+    if fs::remove_file("foo.html").is_err() {
+        error!("Error removing `foo.html`.");
+    };
+
+    // `out.pdf`
+    if fs::remove_file("out.pdf").is_err() {
+        error!("Error removing `out.pdf`.");
+    };
+
+    // `out.jpeg`
+    if fs::remove_file("out.jpeg").is_err() {
+        error!("Error removing `out.jpeg`.");
+    };
+}
+
 #[group("General")]
 #[only_in("guilds")]
 #[commands(
@@ -1254,7 +1356,8 @@ async fn night_action(ctx: &Context, msg: &Message, args: Args) -> CommandResult
     all_replacements,
     vote_count,
     time_since,
-    night_action
+    night_action,
+    format_text
 )]
 #[description("General commands for users.")]
 struct UserCommands;

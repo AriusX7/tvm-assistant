@@ -52,6 +52,10 @@ Your night action. It can only be used in your own private channel. `action` can
 
 *Can only be used by players.*
 
+### `-format <message>`
+
+Parses supplied extended CommonMark Markdown text and attaches an JPEG image and a PDF. For more details, please visit [this page](formatting).
+
 ## Roles
 
 These commands require administrator permission or the host role.
