@@ -205,7 +205,7 @@ sudo ln -s /usr/local/bin/wkhtmltopdf /usr/bin
 sudo ln -s /usr/local/bin/wkhtmltoimage /usr/bin
 ```
 
-**Caveats**
+**Caveats**  
 In the first command, the link after `wget` is the link to the precompiled binary on the downloads page of `wkhtmltopdf`. Make sure you copy the link appropriate for your operating system and architecture. `amd64` and `x86_64` refer to the same architecture.
 
 In the second command, you may need to change `0.12.6-1~bionic_amd64.deb`. Use the URL you copied to edit it.
