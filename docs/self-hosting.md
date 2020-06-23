@@ -120,7 +120,9 @@ You can download this bot's source code in one of the following two ways:
 
 After downloading the repository/folder and unzipping it, `cd` into it. You'll need to edit one file before building the bot. You can do that by opening the folder with your choice of text editor, like [Visual Studio Code](https://code.visualstudio.com/download), [Atom](https://atom.io), and [Sublime Text](https://www.sublimetext.com), if you're hosting the bot on a computer. If you're using a VPS, you'll probably need to use the terminal. Using the terminal, first run this command:
 
-```$ mv .env.example .env```
+```sh
+mv .env.example .env
+```
 
 Using the above command will rename `.env.example` file to `.env`. Next, use `nano`, `vim` or any other terminal editors to edit the `.env` file. If you're using a text editor on a computer, you'll have to do it yourself.
 
@@ -136,7 +138,9 @@ port # the port number, it is usually "5432"
 
 Instructions to find these values can be easily found on Google. Once you have all the values, structure the URL as follows:
 
-```postgres://username:password@host:port/database_name```
+```sh
+postgres://username:password@host:port/database_name
+```
 
 Example URL: `postgres://arius:12345678@localhost:5432/tvm_assist`
 
