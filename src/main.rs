@@ -258,8 +258,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Err creating client");
 
-    // Store 10 messages in cache.
-    client.cache_and_http.cache.set_max_messages(10).await;
+    // Store 50 messages in cache.
+    client.cache_and_http.cache.set_max_messages(50).await;
 
     {
         let mut data = client.data.write().await;
