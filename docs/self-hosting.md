@@ -21,7 +21,7 @@ Hosting TvM Assistant isn't very easy. To host the bot on your own, you'll need:
 - [Rust](#rust)
 - [wkhtmltopdf](https://wkhtmltopdf.org)
 
-You need to have some knowledge of command prompt ([Windows](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands)) or terminal ([MacOS](https://support.apple.com/en-in/guide/terminal/welcome/mac), [other Unix-like](https://en.wikipedia.org/wiki/List_of_Unix_commands)) commands. You'll have to use it a lot to host the bot.
+You need to have some knowledge of command prompt ([Windows](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands)) or terminal ([MacOS](https://support.apple.com/en-in/guide/terminal/welcome/mac), [other Unix-like](https://en.wikipedia.org/wiki/List_of_Unix_commands)) commands. You'll have to use the command prompt/terminal to host the bot.
 
 No knowledge of Rust is required.
 
