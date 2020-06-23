@@ -197,7 +197,8 @@ Download one of the precompiled libraries instead of building it from source or 
 On Linux systems, you'll have to unzip the downloaded package, download missing dependencies and create symbolic links. You can do that by using these commands:
 
 ```shell
-# These commands are for Ubuntu 18.04 x86_64 machines. See caveats after the command for more info.
+# These commands are for Ubuntu 18.04 x86_64 machines. See caveats after the commands for more info.
+
 sudo wget https://builds.wkhtmltopdf.org/0.12.6-1/wkhtmltox_0.12.6-1~bionic_amd64.deb
 sudo dpkg -i wkhtmltox_0.12.6-1~bionic_amd64.deb
 sudo apt-get install -f
