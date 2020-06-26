@@ -56,6 +56,10 @@ Your night action. It can only be used in your own private channel. `action` can
 
 Parses supplied extended CommonMark Markdown text and attaches an JPEG image and a PDF. For more details, please visit [this page](formatting).
 
+### `-tos [name]`
+
+Searches for a page on [the Town of Salem wikia/fandom](https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page). At most 5 results are displayed.
+
 ## Roles
 
 These commands require administrator permission or the host role.
