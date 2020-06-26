@@ -22,7 +22,7 @@ comrak = "0.7.0"
 ammonia = "3.1.0"
 
 [dependencies.tokio]
-version = "0.2.13"
+version = "0.2.21"
 features = ["full"]
 
 [dependencies.serenity]
@@ -41,5 +41,9 @@ version = "0.7.3"
 features = ["getrandom", "std"]
 
 [dependencies.serde]
-version = "1.0.106"
+version = "1.0.114"
 features = ["derive"]
+
+[dependencies.reqwest]
+version = "0.10.6"
+features = ["json"]
