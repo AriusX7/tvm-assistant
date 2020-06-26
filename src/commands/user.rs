@@ -169,7 +169,6 @@ async fn sign_in(ctx: &Context, msg: &Message) -> CommandResult {
 /// get the spectator role after the game has started.
 #[command("out")]
 #[aliases("spec")]
-/// Sign-out from the TvM or sign-up as spectator.
 async fn sign_out(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = match msg.guild(ctx).await {
         Some(i) => i,
@@ -1349,6 +1348,22 @@ fn clean_files() {
     };
 }
 
+/// Searches for a page on Town of Salem wikia (fandom).
+///
+/// **Usage:** `[p]tos <name>`
+///
+/// The bot displays at most 5 results that match the entered `name`. A page is
+/// considered to be a result if it's title contains `name`. If only one result is
+/// found, [botname] just posts the link to the wikia page. If more than one results
+/// are found, the bot sends an embed with hyperlinks to all of the results.
+///
+/// **Examples**
+///
+/// Command: `[p]tos doctor`
+/// Result: https://town-of-salem.fandom.com/wiki/Doctor
+///
+/// Command: `[p]tos invest
+/// Result: Links to five pages with "invest" in their titles.
 #[command("tos")]
 async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let input = if !args.message().is_empty() {
