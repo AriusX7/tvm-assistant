@@ -31,7 +31,12 @@ use utils::database::{obtain_pool, initialize_tables};
 extern crate lazy_static;
 
 struct ShardManagerContainer;
+
+/// Postgres connection pool.
 struct ConnectionPool;
+
+/// Asynchronous client to make HTTP requests.
+struct RequestClient;
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
@@ -39,6 +44,10 @@ impl TypeMapKey for ShardManagerContainer {
 
 impl TypeMapKey for ConnectionPool {
     type Value = PgPool;
+}
+
+impl TypeMapKey for RequestClient {
+    type Value = reqwest::Client;
 }
 
 struct Handler;
@@ -268,6 +277,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Add the database connection to the data.
         let pool = obtain_pool(&database_url).await?;
         data.insert::<ConnectionPool>(pool);
+
+        // Add reqwest client to the data.
+        let client = reqwest::Client::new();
+        data.insert::<RequestClient>(client);
     }
 
     if let Err(why) = client.start().await {
