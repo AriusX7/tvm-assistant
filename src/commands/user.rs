@@ -9,8 +9,11 @@ use crate::{
     utils::{
         converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
+        tos::get_items,
+        constants::EMBED_COLOUR
     },
     ConnectionPool,
+    RequestClient
 };
 use chrono::{offset::Utc, Duration};
 use indexmap::IndexMap;
@@ -1346,6 +1349,53 @@ fn clean_files() {
     };
 }
 
+#[command("tos")]
+async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let input = if !args.message().is_empty() {
+        args.message()
+    } else {
+         msg.channel_id.say(
+             &ctx.http,
+             "https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page"
+        ).await?;
+        return Ok(())
+    };
+
+    // Get request client from data.
+    let data = ctx.data.read().await;
+    let client = data.get::<RequestClient>().unwrap();
+
+    let items = get_items(client, input).await.unwrap_or(vec![]);
+
+    let mut desc = String::new();
+    if !items.is_empty() {
+        if items.len() == 1 {
+            msg.channel_id.say(&ctx.http, items[0].url.clone()).await?;
+            return Ok(());
+        }
+        for (idx, item) in items.iter().enumerate() {
+            let _ = write!(desc, "\n{}. [{}]({})", idx + 1, item.title, item.url);
+        }
+    } else {
+        msg.channel_id.say(&ctx.http, "No results found.").await?;
+        return Ok(());
+    }
+
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.description(desc);
+            e.colour(EMBED_COLOUR);
+            e.title("Results");
+
+            e
+        });
+
+        m
+    }).await?;
+
+    Ok(())
+}
+
 #[group("General")]
 #[only_in("guilds")]
 #[commands(
@@ -1357,7 +1407,8 @@ fn clean_files() {
     vote_count,
     time_since,
     night_action,
-    format_text
+    format_text,
+    tos_wiki
 )]
 #[description("General commands for users.")]
 struct UserCommands;
