@@ -1293,20 +1293,17 @@ async fn format_text(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
 
     // The conversion process is very expensive. Before converting, let's make sure
     // we can attach images and files.
-    match msg.channel(&ctx.cache).await {
-        Some(c) => {
-            if let Some(channel) = c.guild() {
-                let user_id = &ctx.cache.current_user_id().await;
-                if let Ok(perms) = channel.permissions_for_user(&ctx.cache, user_id).await {
-                    if !perms.attach_files() {
-                        msg.channel_id.say(&ctx.http, "I cannot attach files in this channel.").await?;
-                        return Ok(());
-                    }
+    if let Some(c) = msg.channel(&ctx.cache).await {
+        if let Some(channel) = c.guild() {
+            let user_id = &ctx.cache.current_user_id().await;
+            if let Ok(perms) = channel.permissions_for_user(&ctx.cache, user_id).await {
+                if !perms.attach_files() {
+                    msg.channel_id.say(&ctx.http, "I cannot attach files in this channel.").await?;
+                    return Ok(());
                 }
             }
-        },
-        None => ()
-    }
+        }
+    };
 
     // We'll initiate typing so that the user doesn't think bot went offline or broke.
     // If there is any error with this, we'll handle it silently.
@@ -1380,7 +1377,7 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let client = data.get::<RequestClient>().unwrap();
 
-    let items = get_items(client, input).await.unwrap_or(vec![]);
+    let items = get_items(client, input).await.unwrap_or_default();
 
     let mut desc = String::new();
     if !items.is_empty() {

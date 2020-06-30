@@ -144,12 +144,9 @@ pub async fn set_all_roles(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    match guild.members.get(&msg.author.id) {
-        Some(m) => {
+    if let Some(m) = guild.members.get(&msg.author.id) {
             // Try to add the role, do nothing if unable to.
             let _ = m.clone().add_role(&ctx.http, host_role.id).await;
-        },
-        None => ()
     };
 
     // If we're able to create a role, then we can assume we will be able to create the remaining
