@@ -2,7 +2,7 @@
 
 use crate::{
     commands::setup::Cycle,
-    utils::{checks::*, converters::*, predicates::yes_or_no_pred},
+    utils::{checks::*, constants::EMBED_COLOUR, converters::*, predicates::yes_or_no_pred},
     ConnectionPool,
 };
 use rand::Rng;
@@ -19,6 +19,10 @@ use std::fmt::Write;
 
 pub(crate) struct Data {
     pub(crate) player_role_id: Option<i64>,
+    pub(crate) cycle: Option<Json<Cycle>>,
+}
+
+pub(crate) struct CycleContainer {
     pub(crate) cycle: Option<Json<Cycle>>,
 }
 
@@ -1332,6 +1336,98 @@ async fn player_list(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
     Ok(())
 }
 
+#[command]
+async fn current(ctx: &Context, msg: &Message) -> CommandResult {
+    let guild = match msg.guild(ctx).await {
+        Some(i) => i,
+        None => return Err(CommandError::from("Couldn't fetch details of this server.")),
+    };
+
+    let data_read = ctx.data.read().await;
+    let pool = data_read.get::<ConnectionPool>().unwrap();
+
+    // let cycle: Cycle = match sqlx::query_as_unchecked!(
+    //     Cycle,
+    //     "
+        // SELECT cycle->'day' as day, cycle->'night' as night,
+        // cycle->'votes' as votes, cycle->'number' as number
+        // FROM config WHERE guild_id = $1;
+    //     ",
+    //     guild.id.0 as i64
+    // )
+    // .fetch_one(pool)
+    // .await
+    // {
+    //     Ok(c) => c,
+    //     Err(_) => return Err(CommandError::from("Couldn't fetch details from the database."))
+    // };
+
+    let cycle: Cycle = match sqlx::query_as_unchecked!(
+            // "
+            // SELECT cycle->'day' as day, cycle->'night' as night,
+            // cycle->'votes' as votes, cycle->'number' as number
+            // FROM config WHERE guild_id = $1;
+            // ",
+            CycleContainer,
+            "SELECT cycle FROM config WHERE guild_id = $1;",
+            guild.id.0 as i64
+        )
+        .fetch_one(pool)
+        .await
+        {
+            Ok(cf) => {
+                if let Some(c) = cf.cycle {
+                    c.0
+                } else {
+                    Cycle {
+                        number: 0,
+                        day: None,
+                        night: None,
+                        votes: None
+                    }
+                }
+            },
+            Err(_) => return Err(CommandError::from("Couldn't fetch details from the database."))
+        };
+
+    let day = match cycle.day {
+        Some(i) => format!("<#{}>", i),
+        None => String::from("Not set")
+    };
+    let voting = match cycle.votes {
+        Some(i) => format!("<#{}>", i),
+        None => String::from("Not set")
+    };
+    let night = match cycle.night {
+        Some(i) => format!("<#{}>", i),
+        None => String::from("Not set")
+    };
+
+    let sent = msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.colour(EMBED_COLOUR);
+            e.title(format!("Cycle Number {}", cycle.number));
+            e.description(format!(
+                "**Day:** {}\n**Voting:** {}\n**Night:** {}",
+                day,
+                voting,
+                night
+            ));
+
+            e
+        });
+
+        m
+    })
+    .await;
+
+    if sent.is_err() {
+        msg.channel_id.say(&ctx.http, "I couldn't send an embed.").await?;
+    }
+
+    Ok(())
+}
+
 #[group("Host Utility")]
 #[description = "Utility commands for hosts."]
 #[only_in("guilds")]
@@ -1346,6 +1442,7 @@ async fn player_list(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
     create_cycle,
     night,
     kill_player,
-    player_list
+    player_list,
+    current
 )]
 struct Utilities;
