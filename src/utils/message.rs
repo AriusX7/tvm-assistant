@@ -1,4 +1,4 @@
-use serenity::model::predule::Message;
+use serenity::model::prelude::Message;
 
 pub(crate) fn get_jump_url(msg: &Message) -> String {
     if let Some(guild_id) = msg.guild_id {
