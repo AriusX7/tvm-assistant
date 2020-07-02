@@ -3,7 +3,7 @@
 // We only log message edits and deletions.
 
 use crate::{
-    utils::{converters::get_channel_from_id, embed::*, formatting::text_to_file},
+    utils::{converters::get_channel_from_id, embed::*, formatting::text_to_file, message::get_jump_url},
     ConnectionPool,
 };
 use chrono::Utc;
@@ -504,19 +504,5 @@ pub(crate) async fn is_allowed_channel(
         perms.read_messages()
     } else {
         false
-    }
-}
-
-fn get_jump_url(msg: &Message) -> String {
-    if let Some(guild_id) = msg.guild_id {
-        format!(
-            "https://discord.com/channels/{}/{}/{}",
-            guild_id.0, msg.channel_id.0, msg.id.0
-        )
-    } else {
-        format!(
-            "https://discord.com/channels/@me/{}/{}",
-            msg.channel_id.0, msg.id.0
-        )
     }
 }
