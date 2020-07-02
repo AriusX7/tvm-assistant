@@ -10,7 +10,8 @@ use crate::{
         converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
         tos::get_items,
-        constants::EMBED_COLOUR
+        constants::EMBED_COLOUR,
+        message::get_jump_url_with_guild
     },
     ConnectionPool,
     RequestClient
@@ -26,7 +27,7 @@ use serenity::{
     },
     model::{
         misc::Mentionable,
-        prelude::{Guild, GuildChannel, Member, Message, PermissionOverwriteType, Role, User},
+        prelude::{Guild, GuildChannel, Member, Message, PermissionOverwriteType, Role, User, GuildId},
     },
     prelude::Context,
     utils::{content_safe, ContentSafeOptions},
@@ -1408,6 +1409,72 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+/// Sends jump url for the first message of a channel.
+///
+/// **Usage:** `[p]top [channel]`
+///
+/// You can supply a channel to get it's first message. If you don't supply a channel,
+/// the bot will send link for the first message of the channel where the command is used.
+#[command("top")]
+async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    // Get the current channel
+    let channel_id  = match get_channel(
+        &ctx,
+        msg.guild_id.unwrap_or(GuildId(0)),
+        Some(&args.message().to_string())
+    )
+    .await
+    {
+        Ok(c) => c.id,
+        Err(_) => msg.channel_id
+    };
+
+    // A workaround to get the first message in the channel by passing channel's id in `after`.
+    let first_message = match channel_id
+        .messages(&ctx.http, |ret| ret.limit(1).after(channel_id.0))
+        .await
+    {
+        Ok(m) => {
+            if !m.is_empty() {
+                m[0].clone()
+            } else {
+                msg.channel_id
+                    .say(
+                        &ctx.http,
+                        format!("The {} channel seems to be empty.", channel_id.mention()),
+                    )
+                    .await?;
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            return Err(CommandError::from(
+                "I couldn't fetch the first message in the channel.",
+            ))
+        }
+    };
+
+    let url = get_jump_url_with_guild(&first_message, &msg.guild_id.unwrap());
+
+    let sent = msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.colour(EMBED_COLOUR);
+            e.description(format!("[Click here to jump to the top.]({})", url));
+
+            e
+        });
+
+        m
+    })
+    .await;
+
+    if sent.is_err() {
+        msg.channel_id.say(&ctx.http, "I couldn't send an embed.").await?;
+    }
+
+    Ok(())
+}
+
 #[group("General")]
 #[only_in("guilds")]
 #[commands(
@@ -1420,7 +1487,8 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     time_since,
     night_action,
     format_text,
-    tos_wiki
+    tos_wiki,
+    top_cmd
 )]
 #[description("General commands for users.")]
 struct UserCommands;
