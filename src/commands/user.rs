@@ -1469,7 +1469,8 @@ async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     .await;
 
     if sent.is_err() {
-        msg.channel_id.say(&ctx.http, "I couldn't send an embed.").await?;
+        // Send the url directly instead of an error message.
+        msg.channel_id.say(&ctx.http, url).await?;
     }
 
     Ok(())
