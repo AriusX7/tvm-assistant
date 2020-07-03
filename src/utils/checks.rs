@@ -7,7 +7,7 @@ use serenity::{
     prelude::Context,
 };
 
-/// Check to restrict a command to server admins and game hosts.
+// Check to restrict a command to server admins and game hosts.
 #[check]
 #[name = "is_host_or_admin"]
 pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> CheckResult {
@@ -46,7 +46,7 @@ pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Chec
     CheckResult::new_user("You don't have enough permissions to run this command.")
 }
 
-/// Check to restrict command usage when TvM settings are locked.
+// Check to restrict command usage when TvM settings are locked.
 #[check]
 #[name = "tvmset_lock"]
 pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> CheckResult {
