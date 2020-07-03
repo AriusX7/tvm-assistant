@@ -16,6 +16,14 @@ pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Chec
         None => return CheckResult::new_user("Command cannot be used in DMs."),
     };
 
+    if let Some(m) = guild.members.get(&msg.author.id) {
+        if let Ok(p) = m.permissions(&ctx).await {
+            if p.administrator() {
+                return CheckResult::Success;
+            }
+        }
+    };
+
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
@@ -31,14 +39,6 @@ pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Chec
                 if res {
                     return CheckResult::Success;
                 }
-            }
-        }
-    };
-
-    if let Some(m) = guild.members.get(&msg.author.id) {
-        if let Ok(p) = m.permissions(&ctx).await {
-            if p.administrator() {
-                return CheckResult::Success;
             }
         }
     };
