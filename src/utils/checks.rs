@@ -7,9 +7,9 @@ use serenity::{
     prelude::Context,
 };
 
+/// Check to restrict a command to server admins and game hosts.
 #[check]
 #[name = "is_host_or_admin"]
-// Check to restrict a command to server admins and game hosts.
 pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> CheckResult {
     let guild = match msg.guild(&ctx).await {
         Some(i) => i,
@@ -46,9 +46,9 @@ pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Chec
     CheckResult::new_user("You don't have enough permissions to run this command.")
 }
 
+/// Check to restrict command usage when TvM settings are locked.
 #[check]
 #[name = "tvmset_lock"]
-// Check to restrict command usage when TvM settings are locked.
 pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> CheckResult {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
