@@ -2,10 +2,7 @@
 
 use crate::ConnectionPool;
 use log::error;
-use serenity::{
-    model::prelude::Guild,
-    prelude::Context
-};
+use serenity::{model::prelude::Guild, prelude::Context};
 use sqlx::postgres::PgPool;
 
 pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Error>> {

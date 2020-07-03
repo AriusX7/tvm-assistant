@@ -3,7 +3,9 @@
 // We only log message edits and deletions.
 
 use crate::{
-    utils::{converters::get_channel_from_id, embed::*, formatting::text_to_file, message::get_jump_url},
+    utils::{
+        converters::get_channel_from_id, embed::*, formatting::text_to_file, message::get_jump_url,
+    },
     ConnectionPool,
 };
 use chrono::Utc;

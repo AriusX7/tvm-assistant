@@ -7,14 +7,13 @@ use crate::{
         setup::Cycle,
     },
     utils::{
+        constants::EMBED_COLOUR,
         converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
+        message::get_jump_url_with_guild,
         tos::get_items,
-        constants::EMBED_COLOUR,
-        message::get_jump_url_with_guild
     },
-    ConnectionPool,
-    RequestClient
+    ConnectionPool, RequestClient,
 };
 use chrono::{offset::Utc, Duration};
 use indexmap::IndexMap;
@@ -27,7 +26,9 @@ use serenity::{
     },
     model::{
         misc::Mentionable,
-        prelude::{Guild, GuildChannel, Member, Message, PermissionOverwriteType, Role, User, GuildId},
+        prelude::{
+            Guild, GuildChannel, GuildId, Member, Message, PermissionOverwriteType, Role, User,
+        },
     },
     prelude::Context,
     utils::{content_safe, ContentSafeOptions},
@@ -1299,7 +1300,9 @@ async fn format_text(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
             let user_id = &ctx.cache.current_user_id().await;
             if let Ok(perms) = channel.permissions_for_user(&ctx.cache, user_id).await {
                 if !perms.attach_files() {
-                    msg.channel_id.say(&ctx.http, "I cannot attach files in this channel.").await?;
+                    msg.channel_id
+                        .say(&ctx.http, "I cannot attach files in this channel.")
+                        .await?;
                     return Ok(());
                 }
             }
@@ -1314,14 +1317,16 @@ async fn format_text(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
         (Some(p), Some(i)) => vec![i, p],
         (Some(p), None) => vec![p],
         (None, Some(i)) => vec![i],
-        (None, None) => return Ok(())
+        (None, None) => return Ok(()),
     };
 
-    msg.channel_id.send_files(&ctx.http, files, |m| {
-        m.content(format!("{} sent the following:", msg.author.mention()));
+    msg.channel_id
+        .send_files(&ctx.http, files, |m| {
+            m.content(format!("{} sent the following:", msg.author.mention()));
 
-        m
-    }).await?;
+            m
+        })
+        .await?;
 
     clean_files();
 
@@ -1367,11 +1372,13 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let input = if !args.message().is_empty() {
         args.message()
     } else {
-         msg.channel_id.say(
-             &ctx.http,
-             "https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page"
-        ).await?;
-        return Ok(())
+        msg.channel_id
+            .say(
+                &ctx.http,
+                "https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page",
+            )
+            .await?;
+        return Ok(());
     };
 
     // Get request client from data.
@@ -1394,17 +1401,19 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(());
     }
 
-    msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| {
-            e.description(desc);
-            e.colour(EMBED_COLOUR);
-            e.title("Results");
+    msg.channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.description(desc);
+                e.colour(EMBED_COLOUR);
+                e.title("Results");
 
-            e
-        });
+                e
+            });
 
-        m
-    }).await?;
+            m
+        })
+        .await?;
 
     Ok(())
 }
@@ -1418,15 +1427,15 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command("top")]
 async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // Get the current channel
-    let channel_id  = match get_channel(
+    let channel_id = match get_channel(
         &ctx,
         msg.guild_id.unwrap_or(GuildId(0)),
-        Some(&args.message().to_string())
+        Some(&args.message().to_string()),
     )
     .await
     {
         Ok(c) => c.id,
-        Err(_) => msg.channel_id
+        Err(_) => msg.channel_id,
     };
 
     // A workaround to get the first message in the channel by passing channel's id in `after`.
@@ -1456,17 +1465,19 @@ async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let url = get_jump_url_with_guild(&first_message, &msg.guild_id.unwrap());
 
-    let sent = msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| {
-            e.colour(EMBED_COLOUR);
-            e.description(format!("[Click here to jump to the top.]({})", url));
+    let sent = msg
+        .channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.colour(EMBED_COLOUR);
+                e.description(format!("[Click here to jump to the top.]({})", url));
 
-            e
-        });
+                e
+            });
 
-        m
-    })
-    .await;
+            m
+        })
+        .await;
 
     if sent.is_err() {
         // Send the url directly instead of an error message.

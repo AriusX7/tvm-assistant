@@ -25,7 +25,7 @@ use serenity::{
 };
 use sqlx::PgPool;
 use std::{collections::HashSet, env, sync::Arc};
-use utils::database::{obtain_pool, initialize_tables};
+use utils::database::{initialize_tables, obtain_pool};
 
 #[macro_use]
 extern crate lazy_static;

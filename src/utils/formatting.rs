@@ -2,11 +2,8 @@
 
 use comrak::{markdown_to_html, ComrakOptions};
 use log::error;
-use serenity::{
-    http::AttachmentType,
-    model::prelude::Message
-};
-use std::{borrow::Cow, io::Write, fs, path::Path};
+use serenity::{http::AttachmentType, model::prelude::Message};
+use std::{borrow::Cow, fs, io::Write, path::Path};
 use tokio::process::Command;
 
 lazy_static! {
@@ -183,7 +180,7 @@ pub(crate) fn clean_user_mentions(message: &Message) -> String {
 /// They must be handled by the calling function. They cannot be deleted before
 /// they are sent as a message.
 pub(crate) async fn markdown_to_files<'a>(
-    text: &str
+    text: &str,
 ) -> (Option<AttachmentType<'a>>, Option<AttachmentType<'a>>) {
     let html = markdown_to_html(
         text,
@@ -194,7 +191,7 @@ pub(crate) async fn markdown_to_files<'a>(
             ext_superscript: true,
             ext_autolink: true,
             ..Default::default()
-        }
+        },
     );
 
     let mut file = match fs::File::create("foo.html") {
@@ -230,23 +227,19 @@ pub(crate) async fn markdown_to_files<'a>(
         .spawn();
 
     let image = match image_child {
-        Ok(c) => {
-            match c.await {
-                Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.jpeg"))),
-                _ => None
-            }
+        Ok(c) => match c.await {
+            Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.jpeg"))),
+            _ => None,
         },
-        Err(_) => None
+        Err(_) => None,
     };
 
     let pdf = match pdf_child {
-        Ok(c) => {
-            match c.await {
-                Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.pdf"))),
-                _ => None
-            }
+        Ok(c) => match c.await {
+            Ok(s) if s.success() => Some(AttachmentType::Path(&Path::new("out.pdf"))),
+            _ => None,
         },
-        Err(_) => None
+        Err(_) => None,
     };
 
     (pdf, image)

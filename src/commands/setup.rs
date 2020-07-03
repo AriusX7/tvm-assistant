@@ -1,7 +1,10 @@
 // Commands related to TvM's setup are defined here.
 
 use crate::{
-    utils::{checks::*, constants::EMBED_COLOUR, converters::*, predicates::yes_or_no_pred, database::initialize_tables},
+    utils::{
+        checks::*, constants::EMBED_COLOUR, converters::*, database::initialize_tables,
+        predicates::yes_or_no_pred,
+    },
     ConnectionPool,
 };
 use log::error;
@@ -145,8 +148,8 @@ pub async fn set_all_roles(ctx: &Context, msg: &Message) -> CommandResult {
     };
 
     if let Some(m) = guild.members.get(&msg.author.id) {
-            // Try to add the role, do nothing if unable to.
-            let _ = m.clone().add_role(&ctx.http, host_role.id).await;
+        // Try to add the role, do nothing if unable to.
+        let _ = m.clone().add_role(&ctx.http, host_role.id).await;
     };
 
     // If we're able to create a role, then we can assume we will be able to create the remaining
@@ -896,7 +899,10 @@ pub async fn tvm_settings(ctx: &Context, msg: &Message) -> CommandResult {
     {
         Ok(s) => s,
         Err(_) => {
-            error!("config table wasn't initialized for guild with ID {}.", guild.id.0 as i64);
+            error!(
+                "config table wasn't initialized for guild with ID {}.",
+                guild.id.0 as i64
+            );
             // Initialize all three tables.
             initialize_tables(&ctx, &guild).await;
             return Ok(());

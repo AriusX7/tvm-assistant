@@ -1349,9 +1349,9 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     // let cycle: Cycle = match sqlx::query_as_unchecked!(
     //     Cycle,
     //     "
-        // SELECT cycle->'day' as day, cycle->'night' as night,
-        // cycle->'votes' as votes, cycle->'number' as number
-        // FROM config WHERE guild_id = $1;
+    // SELECT cycle->'day' as day, cycle->'night' as night,
+    // cycle->'votes' as votes, cycle->'number' as number
+    // FROM config WHERE guild_id = $1;
     //     ",
     //     guild.id.0 as i64
     // )
@@ -1363,66 +1363,72 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     // };
 
     let cycle: Cycle = match sqlx::query_as_unchecked!(
-            // "
-            // SELECT cycle->'day' as day, cycle->'night' as night,
-            // cycle->'votes' as votes, cycle->'number' as number
-            // FROM config WHERE guild_id = $1;
-            // ",
-            CycleContainer,
-            "SELECT cycle FROM config WHERE guild_id = $1;",
-            guild.id.0 as i64
-        )
-        .fetch_one(pool)
-        .await
-        {
-            Ok(cf) => {
-                if let Some(c) = cf.cycle {
-                    c.0
-                } else {
-                    Cycle {
-                        number: 0,
-                        day: None,
-                        night: None,
-                        votes: None
-                    }
+        // "
+        // SELECT cycle->'day' as day, cycle->'night' as night,
+        // cycle->'votes' as votes, cycle->'number' as number
+        // FROM config WHERE guild_id = $1;
+        // ",
+        CycleContainer,
+        "SELECT cycle FROM config WHERE guild_id = $1;",
+        guild.id.0 as i64
+    )
+    .fetch_one(pool)
+    .await
+    {
+        Ok(cf) => {
+            if let Some(c) = cf.cycle {
+                c.0
+            } else {
+                Cycle {
+                    number: 0,
+                    day: None,
+                    night: None,
+                    votes: None,
                 }
-            },
-            Err(_) => return Err(CommandError::from("Couldn't fetch details from the database."))
-        };
+            }
+        }
+        Err(_) => {
+            return Err(CommandError::from(
+                "Couldn't fetch details from the database.",
+            ))
+        }
+    };
 
     let day = match cycle.day {
         Some(i) => format!("<#{}>", i),
-        None => String::from("Not set")
+        None => String::from("Not set"),
     };
     let voting = match cycle.votes {
         Some(i) => format!("<#{}>", i),
-        None => String::from("Not set")
+        None => String::from("Not set"),
     };
     let night = match cycle.night {
         Some(i) => format!("<#{}>", i),
-        None => String::from("Not set")
+        None => String::from("Not set"),
     };
 
-    let sent = msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| {
-            e.colour(EMBED_COLOUR);
-            e.title(format!("Cycle Number {}", cycle.number));
-            e.description(format!(
-                "**Day:** {}\n**Voting:** {}\n**Night:** {}",
-                day,
-                voting,
-                night
-            ));
+    let sent = msg
+        .channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.colour(EMBED_COLOUR);
+                e.title(format!("Cycle Number {}", cycle.number));
+                e.description(format!(
+                    "**Day:** {}\n**Voting:** {}\n**Night:** {}",
+                    day, voting, night
+                ));
 
-            e
-        });
+                e
+            });
 
-        m
-    })
-    .await;
+            m
+        })
+        .await;
 
     if sent.is_err() {
-        msg.channel_id.say(&ctx.http, "I couldn't send an embed.").await?;
+        msg.channel_id
+            .say(&ctx.http, "I couldn't send an embed.")
+            .await?;
     }
 
     Ok(())
