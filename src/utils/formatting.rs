@@ -146,12 +146,19 @@ pub(crate) fn text_to_file<'a, S: ToString, T: ToString>(
 /// Returns string after capitalizing first letter and making all others lowercase.
 /// Only works for strings with ASCII letters (a-z | A-Z).
 pub(crate) fn capitalize(s: &str) -> String {
-    let lower = s.to_ascii_lowercase();
-    let mut c = lower.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    let mut capitalized = String::new();
+    for word in s.split_whitespace() {
+        for (i, c) in word.chars().enumerate() {
+            if i == 0 {
+                let _ = write!(capitalized, "{}", c.to_uppercase().collect::<String>());
+            } else {
+                let _ = write!(capitalized, "{}", c.to_lowercase().collect::<String>());
+            }
+        }
+        let _ = write!(capitalized, " ");
     }
+
+    capitalized.trim().to_string()
 }
 
 /// Returns the message content after cleaning up user mentions.
