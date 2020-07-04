@@ -3,7 +3,7 @@
 use comrak::{markdown_to_html, ComrakOptions};
 use log::error;
 use serenity::{http::AttachmentType, model::prelude::Message};
-use std::{borrow::Cow, fs, io::Write, path::Path};
+use std::{borrow::Cow, fmt::Write, fs, io::Write, path::Path};
 use tokio::process::Command;
 
 lazy_static! {
