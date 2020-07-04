@@ -1365,7 +1365,7 @@ fn clean_files() {
 /// Command: `[p]tos doctor`
 /// Result: https://town-of-salem.fandom.com/wiki/Doctor
 ///
-/// Command: `[p]tos invest
+/// Command: `[p]tos invest`
 /// Result: Links to five pages with "invest" in their titles.
 #[command("tos")]
 async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
