@@ -150,9 +150,9 @@ pub(crate) fn capitalize(s: &str) -> String {
     for word in s.split_whitespace() {
         for (i, c) in word.chars().enumerate() {
             if i == 0 {
-                let _ = write!(capitalized, "{}", c.to_uppercase().collect::<String>());
+                let _ = write!(capitalized, "{}", c.to_ascii_uppercase());
             } else {
-                let _ = write!(capitalized, "{}", c.to_lowercase().collect::<String>());
+                let _ = write!(capitalized, "{}", c.to_ascii_lowercase());
             }
         }
         let _ = write!(capitalized, " ");
