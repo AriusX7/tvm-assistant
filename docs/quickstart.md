@@ -53,6 +53,8 @@ Use [`-tvm setroles`](commands-reference#-tvm-setroles) command. It will create 
 
 Use [`-tvm setchannels`](commands-reference#-tvm-setchannels) command. It will create **sign-ups** and **night action** (host-only) channels. Feel free to move the channels around or change their names. You can also change channel permissions but it may accidentally break some settings. [More about channels.](commands-reference#channels)
 
+**Important Note:** Due to security reasons, you should not use this command right now. This command sets the night action channel, but night actions aren't secure at the moment. Please use [`-tvm signups <channel>`](commands-reference#-tvm-signups-channel) to just set the sign-ups channel.
+
 Users can sign-up as a player, spectator or replacement by using [`-in`](commands-reference#-in-ignored), [`-spec`](commands-reference#-spec-ignored) or [`repl`](commands-reference#-repl-ignored) commands in the **sign-ups** channel.
 
 ## Step 4
