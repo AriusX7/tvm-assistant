@@ -816,10 +816,10 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let mut user_votes = HashMap::new();
     for message in messages {
-        user_votes.insert(
-            &message.author,
-            get_vote_from_message(clean_user_mentions(&message)),
-        );
+        let vote = get_vote_from_message(clean_user_mentions(&message));
+        if let Some(v) = vote {
+            user_votes.insert(&message.author, v);
+        }
     }
 
     // Adds non-voters to `user_votes`.
@@ -915,7 +915,7 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-fn get_vote_from_message(content: String) -> String {
+fn get_vote_from_message(content: String) -> Option<String> {
     lazy_static! {
         static ref VOTE_RE: Regex =
             Regex::new(r"[\*_~|]*[Vv][Tt][Ll][\*_~|]* ([^\s\*_~|]+)").unwrap();
@@ -925,17 +925,17 @@ fn get_vote_from_message(content: String) -> String {
     }
 
     if let Some(c) = VOTE_RE.captures(content.as_str()) {
-        return capitalize(c.get(1).unwrap().as_str());
+        return Some(capitalize(c.get(1).unwrap().as_str()));
     };
 
     if let Some(c) = UN_VOTE_RE.captures(content.as_str()) {
-        return capitalize(c.get(1).unwrap().as_str());
+        return Some(capitalize(c.get(1).unwrap().as_str()));
     };
 
     if VTNL_RE.is_match(content.as_str()) {
-        capitalize("VTNL")
+        Some("VTNL".to_string())
     } else {
-        capitalize("No vote")
+        None
     }
 }
 
