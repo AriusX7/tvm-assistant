@@ -918,9 +918,9 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 fn get_vote_from_message(content: String) -> Option<String> {
     lazy_static! {
         static ref VOTE_RE: Regex =
-            Regex::new(r"[\*_~|]*[Vv][Tt][Ll][\*_~|]* ([^\s\*_~|]+)").unwrap();
+            Regex::new(r"[\*_~|]*[Vv][Tt][Ll][\*_~|]* ([^\*_~|]+)").unwrap();
         static ref UN_VOTE_RE: Regex =
-            Regex::new(r"[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*\s?([^\s\*_~|]+)?").unwrap();
+            Regex::new(r"[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*\s?([^\*_~|]+)?").unwrap();
         static ref VTNL_RE: Regex = Regex::new(r"[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap();
     }
 
