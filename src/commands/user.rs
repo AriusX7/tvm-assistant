@@ -53,6 +53,13 @@ enum Roles {
     Replacement,
 }
 
+#[derive(Debug)]
+enum Vote {
+    VTL(String),
+    UnVTL(String),
+    VTNL
+}
+
 /// Sign-in for the TvM.
 ///
 /// **Usage:** `[p]in`
@@ -816,9 +823,21 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let mut user_votes = HashMap::new();
     for message in messages {
-        let vote = get_vote_from_message(clean_user_mentions(&message));
-        if let Some(v) = vote {
-            user_votes.insert(&message.author, v);
+        let vote_res = get_vote_from_message(clean_user_mentions(&message));
+        if let Some(vote) = vote_res {
+            match vote {
+                Vote::VTL(u) => {
+                    user_votes.insert(&message.author, u);
+                },
+                Vote::UnVTL(u) => {
+                    if user_votes.get(&message.author).unwrap_or(&"".to_string()) == &u && !u.is_empty() {
+                        user_votes.remove_entry(&message.author);
+                    }
+                },
+                Vote::VTNL => {
+                    user_votes.insert(&message.author, "VTNL".to_string());
+                }
+            }
         }
     }
 
@@ -915,25 +934,25 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-fn get_vote_from_message(content: String) -> Option<String> {
+fn get_vote_from_message(content: String) -> Option<Vote> {
     lazy_static! {
         static ref VOTE_RE: Regex =
-            Regex::new(r"[\*_~|]*[Vv][Tt][Ll][\*_~|]* ([^\*_~|]+)").unwrap();
+            Regex::new(r"^[\*_~|]*[Vv][Tt][Ll][\*_~|]* ([^\*_~|]+)").unwrap();
         static ref UN_VOTE_RE: Regex =
-            Regex::new(r"[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*\s?([^\*_~|]+)?").unwrap();
-        static ref VTNL_RE: Regex = Regex::new(r"[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap();
+            Regex::new(r"^[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*\s?([^\*_~|]+)?").unwrap();
+        static ref VTNL_RE: Regex = Regex::new(r"^[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap();
     }
 
     if let Some(c) = VOTE_RE.captures(content.as_str()) {
-        return Some(capitalize(c.get(1).unwrap().as_str()));
+        return Some(Vote::VTL(capitalize(c.get(1).unwrap().as_str())));
     };
 
     if let Some(c) = UN_VOTE_RE.captures(content.as_str()) {
-        return Some(capitalize(c.get(1).unwrap().as_str()));
+        return Some(Vote::UnVTL(capitalize(c.get(1).unwrap().as_str())));
     };
 
     if VTNL_RE.is_match(content.as_str()) {
-        Some("VTNL".to_string())
+        Some(Vote::VTNL)
     } else {
         None
     }
