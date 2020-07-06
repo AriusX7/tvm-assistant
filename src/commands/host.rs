@@ -763,7 +763,7 @@ async fn create_cycle(ctx: &Context, msg: &Message, args: Args) -> CommandResult
 
     let category = match guild
         .create_channel(&ctx.http, |c| {
-            c.name(format!("Day {}", number))
+            c.name(format!("Cycle {}", number))
                 .kind(ChannelType::Category)
                 .permissions(perms)
         })
