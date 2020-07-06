@@ -944,11 +944,11 @@ fn get_vote_from_message(content: String) -> Option<Vote> {
     }
 
     if let Some(c) = VOTE_RE.captures(content.as_str()) {
-        return Some(Vote::VTL(capitalize(c.get(1).unwrap().as_str())));
+        return Some(Vote::VTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
     if let Some(c) = UN_VOTE_RE.captures(content.as_str()) {
-        return Some(Vote::UnVTL(capitalize(c.get(1).unwrap().as_str())));
+        return Some(Vote::UnVTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
     if VTNL_RE.is_match(content.as_str()) {
