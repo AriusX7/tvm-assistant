@@ -8,14 +8,14 @@ use crate::{
     },
     utils::{
         constants::EMBED_COLOUR,
-        converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role},
+        converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role, get_member},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
         message::get_jump_url_with_guild,
         tos::get_items,
     },
     ConnectionPool, RequestClient,
 };
-use chrono::{offset::Utc, Duration};
+use chrono::{offset::Utc, Duration, Datelike};
 use indexmap::IndexMap;
 use log::error;
 use regex::Regex;
@@ -1506,6 +1506,213 @@ async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+/// Shows a user's voting history.
+///
+/// **Usage:** `[p]votehistory [channel] <user>`
+///
+/// **Alias:** `vh`
+///
+/// If the host has used `cycle` commands to create cycle channels, the bot will
+/// know which is the latest voting channel. The results will be displayed by considering
+/// the votes in that channel. If the bot is unable to detect a voting channel, you'll have
+/// to pass the channel before the user.
+///
+/// **Example**
+///
+/// *Assuming host used `cycle` command and the latest voting channel is `day-5-voting`*
+///
+/// Command: `[p]vh Arius`
+/// Result: The bot will show `Arius`' vote history from `#day-5-voting` channel.
+///
+/// *If the host didn't use `cycle` command or if you wish to get votes from a specific channel*
+///
+/// Command: `[p]vh #day-5-voting Arius`
+/// Result: The bot will show `Arius`' vote history from `#day-5-voting` channel.
+#[command("votehistory")]
+#[aliases("vh")]
+#[min_args(1)]
+async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let guild = match msg.guild(ctx).await {
+        Some(i) => i,
+        None => return Err(CommandError::from("Couldn't fetch details of this server.")),
+    };
+
+    // Get channel if passed.
+    let (passed_channel, user_arg) = match args.single::<String>() {
+        Ok(arg) => {
+            match get_channel(&ctx, guild.id, Some(&arg)).await {
+                Ok(c) => (Some(c), args.remains()),
+                Err(_) => (None, Some(args.message()))
+            }
+        },
+        Err(_) => return Err(CommandError::from("There was an unexpected error."))
+    };
+
+    let user = match user_arg {
+        Some(a) => {
+            match get_member(&ctx, guild.id, Some(&a.to_string())).await {
+                Ok(m) => m,
+                Err(_) => {
+                    msg.channel_id.say(&ctx.http, format!("No user found from `{}`.", a)).await?;
+                    return Ok(());
+                }
+            }
+        },
+        None => {
+            msg.channel_id.say(&ctx.http, "A user must be passed for this command to work.").await?;
+            return Ok(());
+        }
+    };
+
+    // Query database for player_role_id and cycle data.
+    let data_read = ctx.data.read().await;
+    let pool = data_read.get::<ConnectionPool>().unwrap();
+
+    let data: Data = match sqlx::query_as_unchecked!(
+        Data,
+        "SELECT player_role_id, cycle FROM config WHERE guild_id = $1",
+        guild.id.0 as i64
+    )
+    .fetch_one(pool)
+    .await
+    {
+        Ok(d) => d,
+        Err(_) => {
+            return Err(CommandError::from(
+                "Couldn't fetch details from the database.",
+            ))
+        }
+    };
+
+    let cycle = match data.cycle {
+        Some(c) => c.0,
+        None => Cycle {
+            number: 0,
+            day: None,
+            night: None,
+            votes: None,
+        },
+    };
+
+    // Check if user passed a channel.
+    let channel = match passed_channel {
+        Some(c) => c,
+        None => {
+            // See if `cycle` has voting channel.
+            match get_channel_from_id(ctx, guild.id, cycle.votes).await {
+                Ok(c) => c,
+                Err(_) => {
+                    msg.channel_id.say(
+                        &ctx.http,
+                        "
+                        The game doesn't appear to have begun. \
+                        If it has, please use a host to use the `started` command.\
+                        \n\nMeanwhile, you can use `votehistory` command by passing the voting channel \
+                        after the command, like `votehistory #channel-name <user>`.
+                        "
+                    )
+                    .await?;
+
+                    return Ok(());
+                }
+            }
+        }
+    };
+
+    // Let's check if `Player` role exists. We need it to filter messages.
+    let role = match get_role(ctx, guild.id, data.player_role_id).await {
+        Ok(r) => r,
+        Err(_) => {
+            msg.channel_id
+                .say(&ctx.http, "Player role couldn't be found.")
+                .await?;
+            return Ok(());
+        }
+    };
+
+    if !user.roles.contains(&role.id) {
+        msg.channel_id.say(&ctx.http, format!("{} doesn't have the Player role.", user.user.name)).await?;
+        return Ok(())
+    }
+
+    // We'll get the messages now and process them.
+    let mut all_messages = match channel.messages(&ctx.http, |ret | ret.limit(100)).await {
+        Ok(v) => v,
+        Err(_) => return Err(CommandError::from("I was unable to get messages.")),
+    };
+    all_messages.reverse();
+
+    // Time to filter messages to only keep those sent by the user.
+    let messages = all_messages
+        .iter()
+        .filter(|m| m.author.id == user.user.id);
+
+    let mut votes_str = String::new();
+    let mut count = 0;
+    for message in messages {
+        if let Some(vote) = get_vote_from_message(clean_user_mentions(message)) {
+            count += 1;
+            let _ = match vote {
+                Vote::VTL(u) => write!(votes_str, "\n{}. **VTL {}**", count, u),
+                Vote::UnVTL(u) => write!(votes_str, "\n{}. **UnVTL {}**", count, u),
+                Vote::VTNL => write!(votes_str, "\n{}. **VTNL**", count)
+            };
+
+            let _ = write!(
+                votes_str,
+                " (on {} {})",
+                format_day(message.timestamp.day()),
+                message.timestamp.format("%B at %-I:%M %P")
+            );
+        }
+    }
+
+    if votes_str.is_empty() {
+        let _ = write!(votes_str, "No votes.");
+    }
+
+    let sent = msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.colour(EMBED_COLOUR);
+            e.description(format!("Considering votes in {} channel.\n{}", channel.mention(), votes_str));
+            e.author(|a| {
+                a.name(format!("{}'s Voting History", user.user.name));
+                a.icon_url(user.user.face());
+
+                a
+            });
+            e.footer(|f| {
+                f.text("All times are in UTC.");
+
+                f
+            });
+
+            e
+        });
+
+        m
+    })
+    .await;
+
+    if sent.is_err() {
+        msg.channel_id.say(&ctx.http, "I need embed links permission to display vote count.").await?;
+    }
+
+    Ok(())
+}
+
+fn format_day(day: u32) -> String {
+    if day == 1 || day == 21 || day == 31 {
+        format!("{}st", day)
+    } else if day == 2 || day == 22 {
+        format!("{}nd", day)
+    } else if day == 3 || day == 23 {
+        format!("{}rd", day)
+    } else {
+        format!("{}th", day)
+    }
+}
+
 #[group("General")]
 #[only_in("guilds")]
 #[commands(
@@ -1519,7 +1726,8 @@ async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     night_action,
     format_text,
     tos_wiki,
-    top_cmd
+    top_cmd,
+    vote_history
 )]
 #[description("General commands for users.")]
 struct UserCommands;
