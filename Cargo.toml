@@ -26,8 +26,8 @@ version = "0.2.21"
 features = ["full"]
 
 [dependencies.serenity]
-git = "https://github.com/Lakelezz/serenity"
-branch = "await"
+git = "https://github.com/acdenisSK/serenity"
+branch = "await_next"
 # We need `collector` in addition to the default features.
 features = ["collector"]
 
