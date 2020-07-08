@@ -65,9 +65,10 @@ pub async fn get_role(
 }
 
 pub fn search_member_name(members: &HashMap<UserId, Member>, name: &str) -> Option<Member> {
+    let name = Cow::from(name);
     members
         .values()
-        .find(|m| m.display_name() == Cow::from(name))
+        .find(|m| m.display_name() == name || m.user.name == name)
         .cloned()
 }
 
