@@ -803,26 +803,30 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let mut all_messages = match channel.messages(&ctx.http, |ret| ret.limit(100)).await {
+    let players: Vec<&User> = guild
+        .members
+        .values()
+        .filter_map(|m| {
+            if m.roles.contains(&role.id) {
+                Some(&m.user)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let mut messages = match channel.messages(&ctx.http, |ret| ret.limit(100)).await {
         Ok(m) => m,
         Err(_) => return Err(CommandError::from("I was unable to get messages.")),
     };
     // Messages are ordered from new to oldest. We need to reverse that.
-    all_messages.reverse();
-
-    // Time to filter messages to only keep those sent by a player.
-
-    let members = &guild.members;
-    // Instead of filtering, chec
-    let messages = all_messages
-        .iter()
-        .filter(|m| match members.get(&m.author.id) {
-            Some(m) => m.roles.contains(&role.id),
-            None => false,
-        });
+    messages.reverse();
 
     let mut user_votes = HashMap::new();
-    for message in messages {
+    for message in &messages {
+        if !players.contains(&&message.author) {
+            continue;
+        }
         let vote_res = get_vote_from_message(clean_user_mentions(&message));
         if let Some(vote) = vote_res {
             match vote {
@@ -842,7 +846,7 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     // Adds non-voters to `user_votes`.
-    get_non_voters(&guild, &role, &mut user_votes);
+    get_non_voters(players, &mut user_votes);
 
     // Now that we have a `HashMap` of `user -> vote`, we'll create a IndexMap
     // of `vote -> Vec<user>`. We use an `IndexMap` because ordering matters now.
@@ -958,14 +962,10 @@ fn get_vote_from_message(content: String) -> Option<Vote> {
     }
 }
 
-fn get_non_voters<'a>(guild: &'a Guild, player_role: &Role, votes: &mut HashMap<&'a User, String>) {
-    for player in guild
-        .members
-        .values()
-        .filter(|m| m.roles.contains(&player_role.id))
-    {
-        if !votes.contains_key(&player.user) {
-            votes.insert(&player.user, String::from("No vote"));
+fn get_non_voters<'a>(players: Vec<&'a User>, votes: &mut HashMap<&'a User, String>) {
+    for player in players {
+        if !votes.contains_key(player) {
+            votes.insert(player, String::from("No vote"));
         }
     }
 }
@@ -1636,20 +1636,18 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     }
 
     // We'll get the messages now and process them.
-    let mut all_messages = match channel.messages(&ctx.http, |ret | ret.limit(100)).await {
+    let mut messages = match channel.messages(&ctx.http, |ret | ret.limit(100)).await {
         Ok(v) => v,
         Err(_) => return Err(CommandError::from("I was unable to get messages.")),
     };
-    all_messages.reverse();
-
-    // Time to filter messages to only keep those sent by the user.
-    let messages = all_messages
-        .iter()
-        .filter(|m| m.author.id == user.user.id);
+    messages.reverse();
 
     let mut votes_str = String::new();
     let mut count = 0;
-    for message in messages {
+    for message in &messages {
+        if message.author.id != user.user.id {
+            continue;
+        }
         if let Some(vote) = get_vote_from_message(clean_user_mentions(message)) {
             count += 1;
             let _ = match vote {
