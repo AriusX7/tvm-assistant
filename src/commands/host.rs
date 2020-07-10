@@ -988,22 +988,19 @@ async fn night(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    // Remove overwrites for everyone from the night channel.
-    let overwrites = &night.permission_overwrites;
+    let overwrites = if let Some(cat_id) = night.category_id {
+        if let Some(category) = ctx.cache.category(cat_id).await {
+            category.permission_overwrites
+        } else {
+            Vec::new()
+        }
+    } else {
+        Vec::new()
+    };
+
+    // Set overwrites for the night channel.
     for overwrite in overwrites {
-        match overwrite.kind {
-            PermissionOverwriteType::Member(m) => {
-                night
-                    .delete_permission(&ctx.http, PermissionOverwriteType::Member(m))
-                    .await?;
-            }
-            PermissionOverwriteType::Role(r) => {
-                night
-                    .delete_permission(&ctx.http, PermissionOverwriteType::Role(r))
-                    .await?;
-            }
-            _ => (),
-        };
+        night.create_permission(&ctx.http, &overwrite).await?;
     }
 
     msg.channel_id
