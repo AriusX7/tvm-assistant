@@ -245,12 +245,13 @@ async fn send_command_help(
 
     let user = &ctx.cache.current_user().await;
 
-    let mut prefix = String::new();
     let prefixes = group.options.prefixes;
-    if !prefixes.is_empty() {
+    let prefix = if !prefixes.is_empty() {
         // Get the first prefix.
-        prefix = format!("{}{} ", main_prefix, prefixes[0]);
-    }
+        format!("{}{} ", main_prefix, prefixes[0])
+    } else {
+        main_prefix.to_string()
+    };
 
     let desc = parse_text(
         command.options.desc.unwrap_or("No description."),
