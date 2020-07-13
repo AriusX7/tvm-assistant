@@ -168,7 +168,7 @@ async fn set_prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     .await?;
 
     msg.channel_id
-        .say(&ctx.http, format!("Updated guild prefix to `{}`.", prefix))
+        .say(&ctx.http, format!("Updated server prefix to `{}`.", prefix))
         .await?;
 
     Ok(())
