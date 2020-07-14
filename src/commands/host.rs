@@ -1343,28 +1343,7 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
-    // let cycle: Cycle = match sqlx::query_as_unchecked!(
-    //     Cycle,
-    //     "
-    // SELECT cycle->'day' as day, cycle->'night' as night,
-    // cycle->'votes' as votes, cycle->'number' as number
-    // FROM config WHERE guild_id = $1;
-    //     ",
-    //     guild.id.0 as i64
-    // )
-    // .fetch_one(pool)
-    // .await
-    // {
-    //     Ok(c) => c,
-    //     Err(_) => return Err(CommandError::from("Couldn't fetch details from the database."))
-    // };
-
     let cycle: Cycle = match sqlx::query_as_unchecked!(
-        // "
-        // SELECT cycle->'day' as day, cycle->'night' as night,
-        // cycle->'votes' as votes, cycle->'number' as number
-        // FROM config WHERE guild_id = $1;
-        // ",
         CycleContainer,
         "SELECT cycle FROM config WHERE guild_id = $1;",
         guild.id.0 as i64
