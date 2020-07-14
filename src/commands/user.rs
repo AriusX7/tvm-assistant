@@ -3,7 +3,7 @@
 
 use crate::{
     commands::{
-        host::{get_na_channel, Data},
+        host::{get_na_channel, CycleContainer, Data},
         setup::Cycle,
     },
     utils::{
@@ -1568,30 +1568,31 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
-    let data: Data = match sqlx::query_as_unchecked!(
-        Data,
-        "SELECT player_role_id, cycle FROM config WHERE guild_id = $1",
+    let cycle: Cycle = match sqlx::query_as_unchecked!(
+        CycleContainer,
+        "SELECT cycle FROM config WHERE guild_id = $1",
         guild.id.0 as i64
     )
     .fetch_one(pool)
     .await
     {
-        Ok(d) => d,
+        Ok(cf) => {
+            if let Some(c) = cf.cycle {
+                c.0
+            } else {
+                Cycle {
+                    number: 0,
+                    day: None,
+                    night: None,
+                    votes: None,
+                }
+            }
+        }
         Err(_) => {
             return Err(CommandError::from(
                 "Couldn't fetch details from the database.",
             ))
         }
-    };
-
-    let cycle = match data.cycle {
-        Some(c) => c.0,
-        None => Cycle {
-            number: 0,
-            day: None,
-            night: None,
-            votes: None,
-        },
     };
 
     // Check if user passed a channel.
@@ -1618,22 +1619,6 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
             }
         }
     };
-
-    // Let's check if `Player` role exists. We need it to filter messages.
-    let role = match get_role(ctx, guild.id, data.player_role_id).await {
-        Ok(r) => r,
-        Err(_) => {
-            msg.channel_id
-                .say(&ctx.http, "Player role couldn't be found.")
-                .await?;
-            return Ok(());
-        }
-    };
-
-    if !user.roles.contains(&role.id) {
-        msg.channel_id.say(&ctx.http, format!("{} doesn't have the Player role.", user.user.name)).await?;
-        return Ok(())
-    }
 
     // We'll get the messages now and process them.
     let mut messages = match channel.messages(&ctx.http, |ret | ret.limit(100)).await {
