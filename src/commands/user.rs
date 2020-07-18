@@ -8,14 +8,14 @@ use crate::{
     },
     utils::{
         constants::EMBED_COLOUR,
-        converters::{get_channel, get_channel_from_id, get_role, to_channel, to_role, get_member},
+        converters::{get_channel, get_channel_from_id, get_member, get_role, to_channel, to_role},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
         message::get_jump_url_with_guild,
         tos::get_items,
     },
     ConnectionPool, RequestClient,
 };
-use chrono::{offset::Utc, Duration, Datelike};
+use chrono::{offset::Utc, Datelike, Duration};
 use indexmap::IndexMap;
 use log::error;
 use regex::Regex;
@@ -57,7 +57,7 @@ enum Roles {
 enum Vote {
     VTL(String),
     UnVTL(String),
-    VTNL
+    VTNL,
 }
 
 /// Sign-in for the TvM.
@@ -832,12 +832,14 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             match vote {
                 Vote::VTL(u) => {
                     user_votes.insert(&message.author, u);
-                },
+                }
                 Vote::UnVTL(u) => {
-                    if user_votes.get(&message.author).unwrap_or(&"".to_string()) == &u && !u.is_empty() {
+                    if user_votes.get(&message.author).unwrap_or(&"".to_string()) == &u
+                        && !u.is_empty()
+                    {
                         user_votes.remove_entry(&message.author);
                     }
-                },
+                }
                 Vote::VTNL => {
                     user_votes.insert(&message.author, "VTNL".to_string());
                 }
@@ -1539,27 +1541,27 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
     // Get channel if passed.
     let (passed_channel, user_arg) = match args.single::<String>() {
-        Ok(arg) => {
-            match get_channel(&ctx, guild.id, Some(&arg)).await {
-                Ok(c) => (Some(c), args.remains()),
-                Err(_) => (None, Some(args.message()))
-            }
+        Ok(arg) => match get_channel(&ctx, guild.id, Some(&arg)).await {
+            Ok(c) => (Some(c), args.remains()),
+            Err(_) => (None, Some(args.message())),
         },
-        Err(_) => return Err(CommandError::from("There was an unexpected error."))
+        Err(_) => return Err(CommandError::from("There was an unexpected error.")),
     };
 
     let user = match user_arg {
-        Some(a) => {
-            match get_member(&ctx, guild.id, Some(&a.to_string())).await {
-                Ok(m) => m,
-                Err(_) => {
-                    msg.channel_id.say(&ctx.http, format!("No user found from `{}`.", a)).await?;
-                    return Ok(());
-                }
+        Some(a) => match get_member(&ctx, guild.id, Some(&a.to_string())).await {
+            Ok(m) => m,
+            Err(_) => {
+                msg.channel_id
+                    .say(&ctx.http, format!("No user found from `{}`.", a))
+                    .await?;
+                return Ok(());
             }
         },
         None => {
-            msg.channel_id.say(&ctx.http, "A user must be passed for this command to work.").await?;
+            msg.channel_id
+                .say(&ctx.http, "A user must be passed for this command to work.")
+                .await?;
             return Ok(());
         }
     };
@@ -1621,7 +1623,7 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     };
 
     // We'll get the messages now and process them.
-    let mut messages = match channel.messages(&ctx.http, |ret | ret.limit(100)).await {
+    let mut messages = match channel.messages(&ctx.http, |ret| ret.limit(100)).await {
         Ok(v) => v,
         Err(_) => return Err(CommandError::from("I was unable to get messages.")),
     };
@@ -1638,7 +1640,7 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
             let _ = match vote {
                 Vote::VTL(u) => write!(votes_str, "\n{}. **VTL {}**", count, u),
                 Vote::UnVTL(u) => write!(votes_str, "\n{}. **UnVTL {}**", count, u),
-                Vote::VTNL => write!(votes_str, "\n{}. **VTNL**", count)
+                Vote::VTNL => write!(votes_str, "\n{}. **VTNL**", count),
             };
 
             let _ = write!(
@@ -1654,31 +1656,42 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
         let _ = write!(votes_str, "No votes.");
     }
 
-    let sent = msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| {
-            e.colour(EMBED_COLOUR);
-            e.description(format!("Considering votes in {} channel.\n{}", channel.mention(), votes_str));
-            e.author(|a| {
-                a.name(format!("{}'s Voting History", user.user.name));
-                a.icon_url(user.user.face());
+    let sent = msg
+        .channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.colour(EMBED_COLOUR);
+                e.description(format!(
+                    "Considering votes in {} channel.\n{}",
+                    channel.mention(),
+                    votes_str
+                ));
+                e.author(|a| {
+                    a.name(format!("{}'s Voting History", user.user.name));
+                    a.icon_url(user.user.face());
 
-                a
+                    a
+                });
+                e.footer(|f| {
+                    f.text("All times are in UTC.");
+
+                    f
+                });
+
+                e
             });
-            e.footer(|f| {
-                f.text("All times are in UTC.");
 
-                f
-            });
-
-            e
-        });
-
-        m
-    })
-    .await;
+            m
+        })
+        .await;
 
     if sent.is_err() {
-        msg.channel_id.say(&ctx.http, "I need embed links permission to display vote count.").await?;
+        msg.channel_id
+            .say(
+                &ctx.http,
+                "I need embed links permission to display vote count.",
+            )
+            .await?;
     }
 
     Ok(())
