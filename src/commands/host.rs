@@ -1008,8 +1008,7 @@ async fn night(ctx: &Context, msg: &Message) -> CommandResult {
         .await?;
 
     // We'll handle night actions channel now.
-    // Errors with that channel shouldn't affect opening and closing of night/day channels.
-
+    // Errors with night action channel shouldn't affect opening and closing of night/day channels.
     // First, clear list of users who have submitted NA.
     sqlx::query!(
         "
