@@ -155,13 +155,16 @@ async fn sign_in(ctx: &Context, msg: &Message) -> CommandResult {
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
     // Add one to total_signups.
+    // Also add the player to the `players` array.
     sqlx::query!(
         "
-        INSERT INTO config (guild_id, total_signups) VALUES ($1, 1)
+        INSERT INTO config (guild_id, total_signups, players) VALUES ($1, 1, ARRAY[$2::bigint])
         ON CONFLICT (guild_id)
-        DO UPDATE SET total_signups = coalesce(config.total_signups, 0) + 1;
+        DO UPDATE SET total_signups = coalesce(config.total_signups, 0) + 1,
+        players = array_append(config.players, $2);
         ",
-        guild.id.0 as i64
+        guild.id.0 as i64,
+        member.user.id.0 as i64
     )
     .execute(pool)
     .await?;
@@ -514,7 +517,7 @@ async fn remove_role(
         };
 
         if role_type == "Player" {
-            // Decrease total_signups by one.
+            // Decrease total_signups by one and remove player from players array.
             let data_read = ctx.data.read().await;
             let pool = data_read.get::<ConnectionPool>().unwrap();
 
@@ -522,9 +525,11 @@ async fn remove_role(
                 "
                 INSERT INTO config (guild_id, total_signups) VALUES ($1, 0)
                 ON CONFLICT (guild_id)
-                DO UPDATE SET total_signups = coalesce(config.total_signups, 0) - 1;
+                DO UPDATE SET total_signups = coalesce(config.total_signups, 0) - 1,
+                players = array_remove(config.players, $2);
                 ",
-                member.guild_id.0 as i64
+                member.guild_id.0 as i64,
+                member.user.id.0 as i64
             )
             .execute(pool)
             .await?;
