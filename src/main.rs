@@ -64,7 +64,6 @@ impl EventHandler for Handler {
 
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
         // We'll initialize the database tables for a guild if it's new.
-
         if !is_new {
             return;
         }
