@@ -71,9 +71,9 @@ pub async fn initialize_tables(ctx: &Context, guild: &Guild) {
     if let Err(why) = sqlx::query!(
         "
         INSERT INTO prefixes (
-            guild_id
+            guild_id, prefix
         ) VALUES (
-            $1
+            $1, '-'
         ) ON CONFLICT (guild_id) DO NOTHING;
         ",
         guild.id.0 as i64
