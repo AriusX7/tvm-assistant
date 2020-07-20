@@ -98,11 +98,13 @@ async fn info_command(ctx: &Context, msg: &Message) -> CommandResult {
     );
 
     let links = format!(
-        "\n- [Invite to your server]({})\
+        "\
+        \n- [Invite to your server]({})\
         \n- [Support server]({})\
         \n- [Quickstart]({})\
         \n- [Commands Reference]({})\
-        \n- [Source Code]({})",
+        \n- [Source Code]({})\
+        ",
         invite_url, SUPPORT_SERVER, QUICKSTART, COMMANDS_REFERENCE, SOURCE_CODE
     );
 
