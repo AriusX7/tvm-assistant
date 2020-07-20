@@ -143,7 +143,7 @@ async fn sync_total(ctx: &Context, msg: &Message) -> CommandResult {
 
     let res = match sqlx::query!(
         "
-        SELECT total_signups, player_role_id FROM config WHERE guild_id = $1;
+        SELECT total_signups, player_role_id, players FROM config WHERE guild_id = $1;
         ",
         guild.id.0 as i64
     )
@@ -170,21 +170,29 @@ async fn sync_total(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    let players: Vec<&Member> = guild
+    let players: Vec<i64> = guild
         .members
         .values()
-        .filter(|m| m.roles.contains(&role.id))
+        .filter_map(
+            |m| {
+                if m.roles.contains(&role.id) {
+                    Some(m.user.id.0 as i64)
+                } else {
+                    None
+                }
+        })
         .collect();
 
-    if players.len() != total_signups as usize {
+    if players.len() != total_signups as usize || players != res.players.unwrap_or_default() {
         // Update in db
         sqlx::query!(
             "
-            INSERT INTO config (guild_id, total_signups) VALUES ($1, $2)
-            ON CONFLICT (guild_id) DO UPDATE SET total_signups = $2;
+            INSERT INTO config (guild_id, total_signups, players) VALUES ($1, $2, $3)
+            ON CONFLICT (guild_id) DO UPDATE SET total_signups = $2, players = $3;
             ",
             guild.id.0 as i64,
-            players.len() as i16
+            players.len() as i16,
+            players.as_slice()
         )
         .execute(pool)
         .await?;
