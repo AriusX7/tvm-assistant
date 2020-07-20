@@ -38,9 +38,14 @@ Sign-up as a replacement. Automatically assigns the Replacement role and removes
 
 *Hosts, don't use this command.*
 
-### `-votecount [channel]`
+### `-votecount [channel] [--all]`
 
-Counts votes! The bot can automatically detect voting channels. However, it may not be able to detect the correct channel in some cases. Please specify the vote channel in such cases! Alias: `-vc [channel]`
+Counts votes! The bot can automatically detect voting channels. However, it may not be able to detect the correct channel in some cases. Please specify the channel manually if the bot is unable to detect the correct channel.
+
+The bot only shows votes of *alive* players. If you want to get the votes of all players,
+add "--all" at the end of command.
+
+Alias: `-vc [channel] [--all]`
 
 ### `-timesince`
 
