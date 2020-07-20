@@ -817,7 +817,7 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         &ctx.http,
                         "
                         The game doesn't appear to have begun. \
-                        If it has, please use a host to use the `started` command.\
+                        If it has, please ask a host to use the `started` command.\
                         \n\nMeanwhile, you can use `votecount` command by passing the voting channel \
                         after the command, like `votecount #channel-name`.
                         "
@@ -1662,7 +1662,7 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
                         &ctx.http,
                         "
                         The game doesn't appear to have begun. \
-                        If it has, please use a host to use the `started` command.\
+                        If it has, please ask a host to use the `started` command.\
                         \n\nMeanwhile, you can use `votehistory` command by passing the voting channel \
                         after the command, like `votehistory #channel-name <user>`.
                         "
