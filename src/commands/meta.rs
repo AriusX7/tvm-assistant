@@ -29,12 +29,18 @@ async fn invite(ctx: &Context, msg: &Message) -> CommandResult {
         .channel_id
         .send_message(&ctx.http, |m| {
             m.embed(|e| {
-                e.description(format!(
-                    "Invite TvM Assistant to your bot by [clicking here]({}).\
-                \n\nInviting the bot will give it some management permissions. \
-                You can review them when you use the link.",
-                    invite_url
-                ));
+                e.description(
+                    format!(
+                        "
+                        Invite TvM Assistant to your bot by [clicking here]({}).\
+                        \n\nInviting the bot will give it some management permissions. \
+                        You can review them when you use the link.\
+                        \n\nFor questions, suggestions and feedback, join [the support server]({}).
+                        ",
+                        invite_url, SUPPORT_SERVER
+                    )
+                    .trim(),
+                );
                 e.colour(EMBED_COLOUR);
                 e.author(|a| {
                     a.name(format!("Invite {}", user.name));
@@ -88,14 +94,18 @@ async fn info_command(ctx: &Context, msg: &Message) -> CommandResult {
         "\n- In-built logging to detect and ignore private channels",
         "\n- Quick creation of player, mafia and spectator chats",
         "\n- Vote counts and time since day/night started",
+        "\n- Richer text formatting",
     );
 
     let links = format!(
-        "\n- [Invite to your server]({})\
+        "\
+        \n- [Invite to your server]({})\
+        \n- [Support server]({})\
         \n- [Quickstart]({})\
         \n- [Commands Reference]({})\
-        \n- [Source Code]({})",
-        invite_url, QUICKSTART, COMMANDS_REFERENCE, SOURCE_CODE
+        \n- [Source Code]({})\
+        ",
+        invite_url, SUPPORT_SERVER, QUICKSTART, COMMANDS_REFERENCE, SOURCE_CODE
     );
 
     let info_msg = msg

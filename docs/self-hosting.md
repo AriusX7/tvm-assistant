@@ -10,6 +10,8 @@
 
 If you'd like to host the legacy [Python](https://www.python.org) version of the bot, check out [this page](https://ariusx7.github.io/tvm-assistant-red-cog/#self-hosting). Note that the Python version is no longer developed and may not work. However, it is comparatively easier to host. To host the latest version, written in [Rust](https://www.rust-lang.org/), continue reading.
 
+To host previous Rust versions, [click here](outdated/index).
+
 ## Prerequisites
 
 Hosting TvM Assistant isn't very easy. To host the bot on your own, you'll need:
@@ -85,7 +87,8 @@ CREATE TABLE config (
   total_players smallint,
   total_signups smallint,
   na_submitted bigint [],
-  cycle jsonb
+  cycle jsonb,
+  players bigint []
 );
 ```
 

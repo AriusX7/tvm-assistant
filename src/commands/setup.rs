@@ -37,6 +37,7 @@ pub struct Settings {
     pub total_signups: Option<i16>,
     pub na_submitted: Option<Vec<i64>>,
     pub cycle: Option<Json<Cycle>>,
+    pub players: Option<Vec<i64>>,
 }
 
 #[derive(Deserialize, Serialize)]

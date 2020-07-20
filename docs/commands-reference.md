@@ -38,9 +38,14 @@ Sign-up as a replacement. Automatically assigns the Replacement role and removes
 
 *Hosts, don't use this command.*
 
-### `-votecount [channel]`
+### `-votecount [channel] [--all]`
 
-Counts votes! The bot can automatically detect voting channels. However, it may not be able to detect the correct channel in some cases. Please specify the vote channel in such cases! Alias: `-vc [channel]`
+Counts votes! The bot can automatically detect voting channels. However, it may not be able to detect the correct channel in some cases. Please specify the channel manually if the bot is unable to detect the correct channel.
+
+The bot only shows votes of *alive* players. If you want to get the votes of all players,
+add "--all" at the end of command.
+
+Alias: `-vc [channel] [--all]`
 
 ### `-timesince`
 
@@ -59,6 +64,10 @@ Parses supplied extended CommonMark Markdown text and attaches an JPEG image and
 ### `-tos [name]`
 
 Searches for a page on [the Town of Salem wikia/fandom](https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page). At most 5 results are displayed.
+
+### `-votehistory [channel] <user>`
+
+Shows a user's voting history. If the host has used `cycle` commands to create cycle channels, the bot will know which is the latest voting channel. The results will be displayed by considering the votes in that channel. If the bot is unable to detect a voting channel, you'll have to pass the channel before the user. Alias: `-vh [channel] <user>`
 
 ## Roles
 
