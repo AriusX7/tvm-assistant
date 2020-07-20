@@ -65,6 +65,10 @@ Parses supplied extended CommonMark Markdown text and attaches an JPEG image and
 
 Searches for a page on [the Town of Salem wikia/fandom](https://town-of-salem.fandom.com/wiki/Town_of_Salem_Wiki:Main_Page). At most 5 results are displayed.
 
+### `-votehistory [channel] <user>`
+
+Shows a user's voting history. If the host has used `cycle` commands to create cycle channels, the bot will know which is the latest voting channel. The results will be displayed by considering the votes in that channel. If the bot is unable to detect a voting channel, you'll have to pass the channel before the user. Alias: `-vh [channel] <user>`
+
 ## Roles
 
 These commands require administrator permission or the host role.
