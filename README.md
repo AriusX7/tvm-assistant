@@ -124,7 +124,8 @@ CREATE TABLE config (
   total_players smallint,
   total_signups smallint,
   na_submitted bigint [],
-  cycle jsonb
+  cycle jsonb,
+  players bigint []
 );
 ```
 
