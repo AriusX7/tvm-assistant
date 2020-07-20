@@ -60,6 +60,12 @@ enum Vote {
     VTNL,
 }
 
+struct VoteData {
+    pub(crate) player_role_id: Option<i64>,
+    pub(crate) cycle: Option<Json<Cycle>>,
+    pub(crate) players: Option<Vec<i64>>,
+}
+
 /// Sign-in for the TvM.
 ///
 /// **Usage:** `[p]in`
@@ -727,13 +733,32 @@ async fn all_replacements(ctx: &Context, msg: &Message) -> CommandResult {
 
 /// Displays the vote count.
 ///
-/// **Usage:** `[p]votecount [channel]`
+/// **Usage:** `[p]votecount [channel] [--all]`
 ///
 /// **Alias:** `vc`
 ///
 /// Usually, the bot can automatically detect proper voting channels,
 /// but it may fail to do so in some cases. Please specify the channel manually
 /// if the bot is unable to detect the correct channel.
+///
+/// The bot only shows votes of *alive* players. If you want to get the votes of all players,
+/// add "--all" at the end of command.
+///
+/// **Example**
+///
+/// Command: `[p]vc`
+/// Result: The bot tries to find voting channel and displays votes of *alive* players if it
+/// can find the channel.
+///
+/// Command: `[p]vc #day-1-voting`
+/// Result: The bot displays votes of *alive* players from #day-1-voting channel.
+///
+/// Command: `[p]vc --all`
+/// Result: The bot tries to find voting channel and displays votes of *all* players if it
+/// can find the channel.
+///
+/// Command: `[p]vc #day-1-voting --all`
+/// Result: The bot displays votes of *all* players from #day-1-voting channel.
 #[command("votecount")]
 #[aliases("vc")]
 async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -745,9 +770,9 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
-    let data = match sqlx::query_as_unchecked!(
-        Data,
-        "SELECT player_role_id, cycle FROM config WHERE guild_id = $1",
+    let data: VoteData = match sqlx::query_as_unchecked!(
+        VoteData,
+        "SELECT player_role_id, players, cycle FROM config WHERE guild_id = $1",
         guild.id.0 as i64
     )
     .fetch_one(pool)
@@ -771,9 +796,17 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         },
     };
 
+    // Time for argument parsing
+    let all = args.message().contains("--all");
+
     // Check if user passed a channel.
-    // args.message()
-    let channel = match get_channel(ctx, guild.id, Some(&args.message().to_string())).await {
+    let channel = match get_channel(
+        ctx,
+        guild.id,
+        Some(&args.message().replace("--all", "").to_string()),
+    )
+    .await
+    {
         Ok(c) => c,
         Err(_) => {
             // See if `cycle` has voting channel.
@@ -808,17 +841,32 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let players: Vec<&User> = guild
-        .members
-        .values()
-        .filter_map(|m| {
-            if m.roles.contains(&role.id) {
-                Some(&m.user)
-            } else {
-                None
-            }
-        })
-        .collect();
+    let players: Vec<&User> = if !all {
+        guild
+            .members
+            .values()
+            .filter_map(|m| {
+                if m.roles.contains(&role.id) {
+                    Some(&m.user)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    } else {
+        let player_ids = data.players.unwrap_or_default();
+        guild
+            .members
+            .values()
+            .filter_map(|m| {
+                if player_ids.contains(&(m.user.id.0 as i64)) {
+                    Some(&m.user)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    };
 
     let mut messages = match channel.messages(&ctx.http, |ret| ret.limit(100)).await {
         Ok(m) => m,
