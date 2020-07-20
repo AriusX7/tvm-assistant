@@ -547,9 +547,12 @@ async fn remove_role(
 
 /// Lists all members with the Player role.
 ///
-/// **Usage:** `[p]players`
+/// **Usage:** `[p]players [--all]`
+///
+/// By default, the bot only displays *alive* players. To show all players,
+/// add "--all" after the command.
 #[command("players")]
-async fn all_players(ctx: &Context, msg: &Message) -> CommandResult {
+async fn all_players(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let guild = match msg.guild(ctx).await {
         Some(i) => i,
         None => return Err(CommandError::from("Couldn't fetch details of this server.")),
@@ -559,7 +562,7 @@ async fn all_players(ctx: &Context, msg: &Message) -> CommandResult {
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
     let res = match sqlx::query!(
-        "SELECT player_role_id FROM config WHERE guild_id = $1;",
+        "SELECT player_role_id, players FROM config WHERE guild_id = $1;",
         guild.id.0 as i64
     )
     .fetch_one(pool)
@@ -583,17 +586,32 @@ async fn all_players(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    let players: Vec<String> = guild
-        .members
-        .values()
-        .filter_map(|m| {
-            if m.roles.contains(&role.id) {
-                Some(m.mention())
-            } else {
-                None
-            }
-        })
-        .collect();
+    let players: Vec<String> = if !args.message().contains("--all") {
+        guild
+            .members
+            .values()
+            .filter_map(|m| {
+                if m.roles.contains(&role.id) {
+                    Some(m.mention())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    } else {
+        let player_ids = res.players.unwrap_or_default();
+        guild
+            .members
+            .values()
+            .filter_map(|m| {
+                if player_ids.contains(&(m.user.id.0 as i64)) {
+                    Some(m.mention())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    };
 
     if players.is_empty() {
         msg.channel_id.say(&ctx.http, "No players!").await?;
