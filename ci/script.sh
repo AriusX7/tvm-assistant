@@ -4,7 +4,7 @@ set -ex
 
 # TODO This is the "test phase", tweak it as you see fit
 main() {
-    cross build --target $TARGET --release
+    cross build --target $TARGET --release  --features  vendored-openssl
 
     if [ ! -z $DISABLE_TESTS ]; then
         return
