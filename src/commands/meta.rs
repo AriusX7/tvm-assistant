@@ -9,6 +9,7 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
+use std::time::Instant;
 
 /// Sends [botname]'s invite url.
 ///
@@ -184,7 +185,24 @@ async fn set_prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+#[command]
+async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
+    let now = Instant::now();
+    let mut message = msg.channel_id.say(&ctx.http, "Pinging...").await?;
+    let post_latency = now.elapsed().as_millis();
+
+    let now = Instant::now();
+    reqwest::get("https://discord.com/api/v6/gateway").await?;
+    let get_latency = now.elapsed().as_millis();
+
+    message.edit(ctx, |m| {
+        m.content(format!("Pong! Latencies - GET: {}ms, POST: {}ms", get_latency, post_latency))
+    }).await?;
+
+    Ok(())
+}
+
 #[group("Miscellaneous")]
-#[commands(invite, info_command, set_prefix)]
+#[commands(invite, info_command, set_prefix, ping)]
 #[description("Meta commands related to the bot.")]
 struct Misc;
