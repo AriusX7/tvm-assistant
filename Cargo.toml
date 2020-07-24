@@ -21,6 +21,12 @@ chrono = "0.4.13"
 comrak = "0.8.0"
 ammonia = "3.1.0"
 
+openssl = { version = "*", optional = true }
+
+[features]
+default = ["reqwest/default-tls"]
+vendored-openssl = ["openssl/vendored"]
+
 [dependencies.tokio]
 version = "0.2.21"
 features = ["full"]
@@ -32,9 +38,9 @@ branch = "await"
 features = ["collector"]
 
 [dependencies.sqlx]
-version = "0.3.5"
+git = "https://github.com/launchbadge/sqlx"
 default-features = false
-features = ["runtime-tokio", "macros", "postgres", "uuid", "json"]
+features = ["runtime-tokio", "macros", "postgres", "uuid", "offline", "json"]
 
 [dependencies.rand]
 version = "0.7.3"
