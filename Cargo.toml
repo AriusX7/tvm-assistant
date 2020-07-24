@@ -24,7 +24,6 @@ ammonia = "3.1.0"
 openssl = { version = "*", optional = true }
 
 [features]
-default = ["reqwest/default-tls"]
 vendored-openssl = ["openssl/vendored"]
 
 [dependencies.tokio]
