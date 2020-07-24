@@ -1065,7 +1065,7 @@ async fn night(ctx: &Context, msg: &Message) -> CommandResult {
 pub(crate) async fn get_na_channel<'a>(
     ctx: &Context,
     guild: &Guild,
-    pool: &'a sqlx::Pool<sqlx::postgres::PgConnection>,
+    pool: &'a sqlx::PgPool,
 ) -> Result<GuildChannel, &'static str> {
     let na_channel_id = match sqlx::query!(
         "SELECT na_channel_id FROM config WHERE guild_id = $1;",
