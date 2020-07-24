@@ -47,16 +47,8 @@ matrix:
 before_install:
   - set -e
   - rustup self update
-
-addons:
-  apt:
-    packages:
-      - openssl
-      - pkg-config
-      - libssl-dev
-    update: true
-  homebrew:
-    packages: openssl
+  # - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install openssl pkg-config libssl-dev; else brew install openssl; fi
+  - sudo apt-get install openssl pkg-config libssl-dev
 
 install:
   - sh ci/install.sh
