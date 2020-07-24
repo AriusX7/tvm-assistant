@@ -1,0 +1,935 @@
+{
+  "db": "PostgreSQL",
+  "00f37fa76dbec1a23f149a5adf0d068f37d3f26b95f5d38998d87fa56f6c8d75": {
+    "query": "SELECT na_submitted, can_change_na FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "na_submitted",
+          "type_info": "Int8Array"
+        },
+        {
+          "ordinal": 1,
+          "name": "can_change_na",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "08bd25d6661009fdc7a50b520aeeef52039fbfaf0f64e9d42929ac576e21ee9c": {
+    "query": "\n        INSERT INTO config(guild_id, signups_on) VALUES($1, $2)\n        ON CONFLICT (guild_id) DO UPDATE SET signups_on = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "0a9526b7634f421c48092654fbc3c8d15d889b397ee673b80277aaa27288aaef": {
+    "query": "\n        SELECT\n            cycle,\n            signups_on,\n            total_players,\n            total_signups,\n            signups_channel_id,\n            player_role_id,\n            spec_role_id,\n            repl_role_id\n        FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 1,
+          "name": "signups_on",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 2,
+          "name": "total_players",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 3,
+          "name": "total_signups",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 4,
+          "name": "signups_channel_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 6,
+          "name": "spec_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "repl_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "0fa97c8777611a9931afb3eb24c9211e5ddf4ead7ea8f0582980c57638fbb0a9": {
+    "query": "SELECT host_role_id, player_role_id FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "host_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "1065c3abbb57662d10273801f1164be99b87b8ec54bab72bfd6c3cbfeb3f2bbd": {
+    "query": "\n                INSERT INTO config (guild_id, total_signups) VALUES ($1, 0)\n                ON CONFLICT (guild_id)\n                DO UPDATE SET total_signups = coalesce(config.total_signups, 0) - 1,\n                players = array_remove(config.players, $2);\n                ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "11eb478a95dd4dc954298b5609c2c07ba8612e833c7ae22660520c7da93e2930": {
+    "query": "SELECT dead_role_id, player_role_id FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "dead_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "1483dbd7e7e42c598858f081369e758b7d3dcbab515bcc930469cf926450510e": {
+    "query": "SELECT player_role_id, players FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "players",
+          "type_info": "Int8Array"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "15a4169cd31c21c1676b20dd74a8b824109d42be2b498933ab2113c72d71490b": {
+    "query": "\n        INSERT INTO config (\n            guild_id,\n            can_change_na,\n            tvmset_lock,\n            signups_on,\n            total_players,\n            total_signups,\n            cycle\n        ) VALUES (\n            $1,\n            true,\n            false,\n            true,\n            12,\n            0,\n            '{ \"number\": 0, \"day\": null, \"night\": null, \"votes\": null }'\n        ) ON CONFLICT (guild_id) DO NOTHING;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "1929e5ad41ec67769ad2e82b0d6ae266098e4abed7431942694f38860478ade5": {
+    "query": "SELECT host_role_id FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "host_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "2421104936fe0a0ff46eecfee8355d702b6505b6ac3782c899db06a6fef241ce": {
+    "query": "\n        SELECT total_signups FROM config WHERE guild_id = $1;\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "total_signups",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "2a8970cd7cfcf792c1adac250d6d7cd6ddf7af064a60ad28b41cc1738881f362": {
+    "query": "SELECT cycle FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "2d72ca4894aed6c891322435b59949d4bd7f93cc2a6c474e3265dd81dfa126a1": {
+    "query": "\n        INSERT INTO prefixes (\n            guild_id, prefix\n        ) VALUES (\n            $1, '-'\n        ) ON CONFLICT (guild_id) DO NOTHING;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "32e93bbd5d7b260aba40ad125c2e1f457d252828fe265495b22da4ba3b83dd06": {
+    "query": "SELECT player_role_id, players, cycle FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "players",
+          "type_info": "Int8Array"
+        },
+        {
+          "ordinal": 2,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "41f41b800a0c17dc42511838d64020de6763f8be0954953ce1c4670fd0a5b636": {
+    "query": "\n        INSERT INTO config(\n            guild_id,\n            cycle,\n            na_submitted\n        ) VALUES (\n            $1,\n            $2,\n            null\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET\n            cycle = $2,\n            na_submitted = null;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Jsonb"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "4846c5f0360ab63433c426e79262dbff9ceeebce90827e30d0cdad3d5e90179a": {
+    "query": "\n        UPDATE logging SET blacklist_channel_ids = array_remove(blacklist_channel_ids, $2)\n        WHERE guild_id = $1;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "54e5e93a2dd11a75652e825c38ebab52ed63b190d7c0e4aa552cc16ff5d55a2f": {
+    "query": "SELECT repl_role_id FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "repl_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "572cf4c162fcb05820e37d5f019b042d3e14fdbce2a902b88ec4dcfaa2acb320": {
+    "query": "\n        INSERT INTO logging (\n            guild_id, blacklist_channel_ids\n        ) VALUES (\n            $1, array[$2]::bigint[]\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET blacklist_channel_ids = array_append(logging.blacklist_channel_ids, $2)\n        WHERE logging.blacklist_channel_ids IS NULL\n        OR not(logging.blacklist_channel_ids @> array[$2]::bigint[]);\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "5dd9c14947e21833eeb09cda968dca7ea51f5ad4cd213dc3d9b4f80cd64d876e": {
+    "query": "\n        SELECT total_signups, player_role_id, players FROM config WHERE guild_id = $1;\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "total_signups",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 1,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "players",
+          "type_info": "Int8Array"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "60c2a4be114e123bb06137e333fd2460e44e544503f574cb18869a4e2ab6054e": {
+    "query": "\n            INSERT INTO config (guild_id, total_signups, players) VALUES ($1, $2, $3)\n            ON CONFLICT (guild_id) DO UPDATE SET total_signups = $2, players = $3;\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int2",
+          "Int8Array"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6586159c113d3f827eac5ba24bb7bae1529988c3405db05d0dac812962283318": {
+    "query": "\n        INSERT INTO config (guild_id, total_signups, players) VALUES ($1, 1, ARRAY[$2::bigint])\n        ON CONFLICT (guild_id)\n        DO UPDATE SET total_signups = coalesce(config.total_signups, 0) + 1,\n        players = array_append(config.players, $2);\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "69a1aea77e44e61cc3df7176bc370de8c8ba2577fa55a22c0cf529a916ebdf52": {
+    "query": "\n        INSERT INTO config(guild_id, tvmset_lock) VALUES($1, $2)\n        ON CONFLICT (guild_id) DO UPDATE SET tvmset_lock = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6bc2fbb0ab2bf32dca22c8d8f028dc59ca30962d5eed577e776013c3d44b0ea1": {
+    "query": "\n        INSERT INTO logging (\n            guild_id\n        ) VALUES (\n            $1\n        ) ON CONFLICT (guild_id) DO NOTHING;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "71bd8fba99b7fb2a5edbaa323e6b247f1613b5e0fa1c396e83b11c2d4b51f8a5": {
+    "query": "\n        INSERT INTO logging (\n            guild_id, whitelist_channel_ids\n        ) VALUES (\n            $1, array[$2]::bigint[]\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET whitelist_channel_ids = array_append(logging.whitelist_channel_ids, $2)\n        WHERE logging.whitelist_channel_ids IS NULL\n        OR not(logging.whitelist_channel_ids @> array[$2]::bigint[]);\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "8cf4d06155c93852d607749c6ce3029f8c3ca6216e516dff0f03327e0bb2b0ed": {
+    "query": "\n        INSERT INTO prefixes (\n            guild_id, prefix\n        ) VALUES (\n            $1, $2\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET prefix = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "9150c73a8dc0634ad4dcfff40fc64c6016fece0c6d62d8706998b5d05b36c07d": {
+    "query": "\n        INSERT INTO config(\n            guild_id, na_submitted\n        ) VALUES (\n            $1, '{}'\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET na_submitted = '{}';\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "957ded0b6c5ed12575152b76965877981f16c5d087dbe6f2b5be2a56c9f6148e": {
+    "query": "SELECT * FROM logging WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "log_channel_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "blacklist_channel_ids",
+          "type_info": "Int8Array"
+        },
+        {
+          "ordinal": 3,
+          "name": "whitelist_channel_ids",
+          "type_info": "Int8Array"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "97966c047da6b9d1913643b250455bad76516f04679048914f8389b1eefb10f8": {
+    "query": "\n        UPDATE logging SET whitelist_channel_ids = array_remove(whitelist_channel_ids, $2)\n        WHERE guild_id = $1;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "9b240e0b6228c0279bc956bca7fb720d9893cf659ad5105d353ea6b618b49bf1": {
+    "query": "\n        INSERT INTO logging (\n            guild_id, log_channel_id\n        ) VALUES (\n            $1, $2\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET log_channel_id = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "9c87da9f7ab49b9bba8e62e6fa393e7b063ab85ee138aa07c8c947a45f13464c": {
+    "query": "\n        INSERT INTO config (\n            guild_id, na_channel_id\n        )\n        VALUES (\n            $1, $2\n        ) ON CONFLICT (guild_id)\n        DO UPDATE SET na_channel_id = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "a0e4e738bce91155ef4fe2a513ec02aedc5633e723447470d0fbdf8f312d2f70": {
+    "query": "\n            INSERT INTO config(\n                guild_id, na_submitted\n            ) VALUES (\n                $1, array[$2]::bigint[]\n            ) ON CONFLICT (guild_id)\n            DO UPDATE SET na_submitted = array_append(config.na_submitted, $2)\n            WHERE config.na_submitted IS NULL\n            OR not(config.na_submitted @> array[$2]::bigint[]);\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "a38b29bacd518c55816647692d4c48115a802b6774d702d3f2410fe3378e2a73": {
+    "query": "\n        INSERT INTO config (\n            guild_id,\n            host_role_id,\n            player_role_id,\n            spec_role_id,\n            repl_role_id,\n            dead_role_id\n        ) VALUES (\n            $1, $2, $3, $4, $5, $6\n        ) ON CONFLICT (guild_id) DO UPDATE SET\n            host_role_id = $2,\n            player_role_id = $3,\n            spec_role_id = $4,\n            repl_role_id = $5,\n            dead_role_id = $6\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "a83c23d05aa6c9aea2fe51dcf64c7a0d5a41b6650746da982e33c27b536937f0": {
+    "query": "SELECT can_change_na FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "can_change_na",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "b16c0d3b8f26ceaad0deac8819dd14e575d3c7e1d4b8dbb146193f28d6fb9e05": {
+    "query": "SELECT na_channel_id FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "na_channel_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "cafd6468f4fc41a3690800f146fd4acdc2fd7796e58b7eb3b04277c486441544": {
+    "query": "SELECT tvmset_lock FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "tvmset_lock",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "cf0342e5727f10057e06d426be9e46c15a564ec2981d394ae5eeb5a2fe40a73b": {
+    "query": "SELECT spec_role_id FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "spec_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "cf39ed01a83ab4e744fa440c17fd24141dab4d9ad94e994ef3fd0fcaa46c509c": {
+    "query": "SELECT player_role_id FROM config WHERE guild_id = $1;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "dc7e0f2441ed8d7575789ab54e2399a9fd7b515a2967c034cc760a5d49ac2f79": {
+    "query": "\n        INSERT INTO config(guild_id, can_change_na) VALUES($1, $2)\n        ON CONFLICT (guild_id) DO UPDATE SET can_change_na = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "e25fb5de5ecef2b00b011a4952c7645cafb42a6583423b884098b8344e74e444": {
+    "query": "SELECT prefix FROM prefixes WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "prefix",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "e53e731926239fa9fda8becfb7920f6770e9d60c335604dc73a2b605ca1080a1": {
+    "query": "\n        SELECT * FROM config WHERE guild_id = $1;\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "host_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 3,
+          "name": "spec_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "repl_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "dead_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 6,
+          "name": "na_channel_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "signups_channel_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 8,
+          "name": "can_change_na",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 9,
+          "name": "tvmset_lock",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 10,
+          "name": "signups_on",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 11,
+          "name": "total_players",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 12,
+          "name": "total_signups",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 13,
+          "name": "na_submitted",
+          "type_info": "Int8Array"
+        },
+        {
+          "ordinal": 14,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 15,
+          "name": "players",
+          "type_info": "Int8Array"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "edf0fac3c5a0b1d6a677986ef7efc43abd84dc3575878795ab5f64a09ff89e0a": {
+    "query": "\n        INSERT INTO config (\n            guild_id,\n            signups_channel_id,\n            na_channel_id\n        ) VALUES (\n            $1, $2, $3\n        ) ON CONFLICT (guild_id) DO UPDATE SET\n        signups_channel_id = $2,\n        na_channel_id = $3\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f18bf64b16da79f4cf4b1efc745045d39df4c9a9fa208b98088c784d53d5105e": {
+    "query": "SELECT player_role_id FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "f28bfa73439feaed6849f8edd10f6b1e0e154f34d940149f9e7923e71ae1ab2b": {
+    "query": "SELECT cycle FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "f2aa856d871a3b8a3edb654637ac847de2d751493ea38c6c102f1499481ccef7": {
+    "query": "SELECT player_role_id, cycle FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "player_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "cycle",
+          "type_info": "Jsonb"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "ff94d6b9b504c559a6a8745fc7930e8665b743435e69446899dccb01f599b770": {
+    "query": "\n        INSERT INTO config(guild_id, total_players) VALUES($1, $2)\n        ON CONFLICT (guild_id) DO UPDATE SET total_players = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int2"
+        ]
+      },
+      "nullable": []
+    }
+  }
+}
