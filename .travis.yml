@@ -47,8 +47,16 @@ matrix:
 before_install:
   - set -e
   - rustup self update
-  - sudo apt-get update
-  - sudo apt-get -y install openssl pkg-config libssl-dev
+
+addons:
+  apt:
+    packages:
+      - openssl
+      - pkg-config
+      - libssl-dev
+    update: true
+  homebrew:
+    packages: openssl
 
 install:
   - sh ci/install.sh
