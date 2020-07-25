@@ -32,7 +32,7 @@ impl From<serenity::Error> for MenuError {
 
 impl From<CommandError> for MenuError {
     fn from(error: CommandError) -> Self {
-        Self(error.0)
+        Self(error.to_string())
     }
 }
 

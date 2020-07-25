@@ -283,8 +283,8 @@ async fn set_role(
     let guild_id = match msg.guild_id {
         Some(i) => i,
         None => {
-            return Err(CommandError(
-                "There was an error getting this server".to_string(),
+            return Err(CommandError::from(
+                "There was an error getting this server",
             ))
         }
     };
@@ -301,7 +301,7 @@ async fn set_role(
     let role = match to_role(ctx, guild_id, input).await {
         Some(r) => r,
         None => {
-            return Err(CommandError(format!(
+            return Err(CommandError::from(format!(
                 "Role with name **{}** was not found.",
                 input
             )))
@@ -549,8 +549,8 @@ async fn set_channel(
     let guild_id = match msg.guild_id {
         Some(i) => i,
         None => {
-            return Err(CommandError(
-                "There was an error getting this server.".to_string(),
+            return Err(CommandError::from(
+                "There was an error getting this server.",
             ))
         }
     };
@@ -569,14 +569,14 @@ async fn set_channel(
             if let ChannelType::Text = c.kind {
                 c
             } else {
-                return Err(CommandError(format!(
+                return Err(CommandError::from(format!(
                     "{} is not a text channel.",
                     c.mention()
                 )));
             }
         }
         None => {
-            return Err(CommandError(format!(
+            return Err(CommandError::from(format!(
                 "Channel with name **{}** was not found.",
                 input
             )))
@@ -659,7 +659,7 @@ pub async fn can_change_na(ctx: &Context, msg: &Message, mut args: Args) -> Comm
     } else {
         setting = match args.single() {
             Ok(s) => s,
-            Err(_) => return Err(CommandError("Invalid option.".to_string())),
+            Err(_) => return Err(CommandError::from("Invalid option.")),
         };
     }
 

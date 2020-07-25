@@ -15,16 +15,16 @@ pub async fn yes_or_no_pred(
     match &confirm_msg.react(&ctx.http, '✅').await {
         Ok(_) => (),
         Err(_) => {
-            return Err(CommandError(
-                "I cannot add reactions to the message.".to_string(),
+            return Err(CommandError::from(
+                "I cannot add reactions to the message.",
             ))
         }
     };
     match &confirm_msg.react(&ctx.http, '❌').await {
         Ok(_) => (),
         Err(_) => {
-            return Err(CommandError(
-                "I cannot add reactions to the message.".to_string(),
+            return Err(CommandError::from(
+                "I cannot add reactions to the message.",
             ))
         }
     };
