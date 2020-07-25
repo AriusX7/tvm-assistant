@@ -58,15 +58,15 @@ There are two methods of hosting the latest versions of TvM Assistant.
 - Using a precompiled binary (recommended)
 - Building the bot from source
 
-Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>††</sub></sup>) are required for both methods.
+Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>††</sup></sub>) are required for both methods.
 
 - A computer
 - [Discord Bot Application](#discord-bot-application)
 - [PostgreSQL](#postgresql)
-- [Precompiled binary of this bot](#precompiled-binary)<sub><sup>†</sub></sup>
-- [Source code of this bot](#source-code)<sub><sup>††</sub></sup>
-- [Rust](#rust)<sub><sup>††</sub></sup>
-- [wkhtmltopdf](https://wkhtmltopdf.org)<sub><sup>†††</sub></sup>
+- [Precompiled binary of this bot](#precompiled-binary)<sub><sup>†</sup></sub>
+- [Source code of this bot](#source-code)<sub><sup>††</sup></sub>
+- [Rust](#rust)<sub><sup>††</sup></sub>
+- [wkhtmltopdf](https://wkhtmltopdf.org)<sub><sup>†††</sup></sub>
 
 You need to have some knowledge of command prompt ([Windows](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands)) or terminal ([MacOS](https://support.apple.com/en-in/guide/terminal/welcome/mac), [other Unix-like](https://en.wikipedia.org/wiki/List_of_Unix_commands)) commands. You'll have to use the command prompt/terminal to host the bot.
 
@@ -74,9 +74,9 @@ No knowledge of Rust is required.
 
 Brief instructions to install/create the above requirements given below. If you run into errors, you can contact me on Discord (`Arius#5544`), but please try using Google to fix the errors first, as you will be able find a solution for most of the errors you may run into.
 
-<sub><sup>† Only required for method 1 (recommended)</sub></sup>  
-<sub><sup>†† Only required for method 2</sub></sup>  
-<sub><sup>††† Only required if you want the `format` command to work</sub></sup>  
+<sub><sup>† Only required for method 1 (recommended)</sup></sub>  
+<sub><sup>†† Only required for method 2</sup></sub>  
+<sub><sup>††† Only required if you want the `format` command to work</sup></sub>  
 
 ### Installation
 
