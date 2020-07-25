@@ -1,4 +1,6 @@
 -- Add migration script here
+
+-- config table
 CREATE TABLE config (
   guild_id bigint NOT NULL PRIMARY KEY,
   host_role_id bigint,
@@ -16,4 +18,18 @@ CREATE TABLE config (
   na_submitted bigint [],
   cycle jsonb,
   players bigint []
+);
+
+-- logging table
+CREATE TABLE logging (
+  guild_id bigint NOT NULL PRIMARY KEY,
+  log_channel_id bigint,
+  blacklist_channel_ids bigint [],
+  whitelist_channel_ids bigint []
+);
+
+-- prefixes table
+CREATE TABLE prefixes (
+    guild_id bigint NOT NULL PRIMARY KEY,
+    prefix text
 );
