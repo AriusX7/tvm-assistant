@@ -21,15 +21,15 @@ There are two methods of hosting the latest versions of TvM Assistant.
 - Using a precompiled binary (recommended)
 - Building the bot from source
 
-Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>††</sub></sup>) are required for both methods.
+Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>†</sup></sub>) are required for both methods.
 
 - A computer
 - [Discord Bot Application](#discord-bot-application)
 - [PostgreSQL](#postgresql)
-- [Precompiled binary of this bot](#precompiled-binary)<sub><sup>†</sub></sup>
-- [Source code of this bot](#source-code)<sub><sup>††</sub></sup>
-- [Rust](#rust)<sub><sup>††</sub></sup>
-- [wkhtmltopdf](https://wkhtmltopdf.org)<sub><sup>†††</sub></sup>
+- [Precompiled binary of this bot](#precompiled-binary)<sub><sup>†</sup></sub>
+- [Source code of this bot](#source-code)<sub><sup>††</sup></sub>
+- [Rust](#rust)<sub><sup>††</sup></sub>
+- [wkhtmltopdf](https://wkhtmltopdf.org)<sub><sup>†††</sup></sub>
 
 You need to have some knowledge of command prompt ([Windows](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands)) or terminal ([MacOS](https://support.apple.com/en-in/guide/terminal/welcome/mac), [other Unix-like](https://en.wikipedia.org/wiki/List_of_Unix_commands)) commands. You'll have to use the command prompt/terminal to host the bot.
 
@@ -37,9 +37,9 @@ No knowledge of Rust is required.
 
 Brief instructions to install/create the above requirements given below. If you run into errors, you can contact me on Discord (`Arius#5544`), but please try using Google to fix the errors first, as you will be able find a solution for most of the errors you may run into.
 
-<sub><sup>† Only required for method 1 (recommended)</sub></sup>  
-<sub><sup>†† Only required for method 2</sub></sup>  
-<sub><sup>††† Only required if you want the `format` command to work</sub></sup>  
+<sub><sup>† Only required for method 1 (recommended)</sup></sub>  
+<sub><sup>†† Only required for method 2</sup></sub>  
+<sub><sup>††† Only required if you want the `format` command to work</sup></sub>  
 
 ## Installation
 
@@ -134,7 +134,7 @@ In the [PostgreSQL section](#postgresql), we downloaded PostreSQL but did not cr
 
 ```postgres://arius:12345678@localhost:5432/tvm_assist```
 
-`.env` file should look like this:
+And the `.env` file should look like this:
 
 ```text
 DISCORD_TOKEN=YOUR_BOT_TOKEN
@@ -236,7 +236,7 @@ Make sure you use these commands **inside** `psql`.
 
 If you used method 1 (downloaded precompiled binary of the bot), all you need to do now is download [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and then [run the bot](#running-the-bot).
 
-If you used method 2 (downloaded source code), you'll need to install RUst (if you haven't already), [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and finally [build and run the bot](#running-the-bot).
+If you used method 2 (downloaded source code), you'll need to install Rust (if you haven't already), [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and finally [build and run the bot](#running-the-bot).
 
 ### Rust
 
@@ -331,7 +331,7 @@ To update the bot, you'll have to download a new precompiled binary from the rel
 
 After downloading it, you'll have to run sqlx migrations. If you have `sqlx-cli` downloaded, you simply need to run the following command:
 
-```sqlx run migrations```
+```sqlx migrate run```
 
 If not, you'll find manual migration details on the [Releases](https://github.com/AriusX7/tvm-assistant/releases) page.
 
