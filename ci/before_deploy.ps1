@@ -12,8 +12,10 @@ $ZIP = "$SRC_DIR\$($env:CRATE_NAME)-$($env:APPVEYOR_REPO_TAG_NAME)-$($env:TARGET
 
 # TODO Update this to package the right artifacts
 Copy-Item "$SRC_DIR\target\$($env:TARGET)\release\$($env:CRATE_NAME).exe" '.\'
+Copy-Item "$SRC_DIR\.env.example" '.\'
 Copy-Item "$SRC_DIR\LICENSE" '.\'
 Copy-Item "$SRC_DIR\README.md" '.\'
+Copy-Item "$SRC_DIR\migrations" '.\' -Recurse
 
 7z a "$ZIP" *
 

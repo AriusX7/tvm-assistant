@@ -22,7 +22,8 @@ main() {
 
     # TODO Update this to package the right artifacts
     cp target/$TARGET/release/tvm-assistant $stage/
-    cp README.md LICENSE $stage/
+    cp README.md LICENSE .env.example $stage/
+    cp -R migrations $stage/
 
     cd $stage
     tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *
