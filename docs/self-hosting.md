@@ -21,7 +21,7 @@ There are two methods of hosting the latest versions of TvM Assistant.
 - Using a precompiled binary (recommended)
 - Building the bot from source
 
-Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>††</sup></sub>) are required for both methods.
+Both of the methods have some common requirements. In the below list, items without a marking (<sub><sup>†</sup></sub>) are required for both methods.
 
 - A computer
 - [Discord Bot Application](#discord-bot-application)
