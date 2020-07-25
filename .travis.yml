@@ -1,0 +1,85 @@
+# Based on the "trust" template v0.1.2
+# https://github.com/japaric/trust/tree/v0.1.2
+
+dist: trusty
+language: rust
+services: docker
+sudo: required
+
+env:
+  global:
+    - CRATE_NAME=tvm-assistant
+
+matrix:
+  # TODO These are all the build jobs. Adjust as necessary. Comment out what you
+  # don't need
+  include:
+    # Linux
+    - env: TARGET=x86_64-unknown-linux-gnu
+    - env: TARGET=aarch64-unknown-linux-gnu
+    - env: TARGET=arm-unknown-linux-gnueabi
+    - env: TARGET=armv7-unknown-linux-gnueabihf
+    - env: TARGET=i686-unknown-linux-gnu
+    - env: TARGET=i686-unknown-linux-musl
+    - env: TARGET=x86_64-unknown-linux-musl
+
+    # OSX
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+
+    # Testing other channels
+    - env: TARGET=x86_64-unknown-linux-gnu
+      rust: nightly
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+      rust: nightly
+
+before_install:
+  - set -e
+  - rustup self update
+
+addons:
+  apt:
+    packages:
+      - libssl-dev
+    update: true
+  homebrew:
+    packages:
+      - openssl
+
+install:
+  - sh ci/install.sh
+  - source ~/.cargo/env || true
+
+script:
+  - bash ci/script.sh
+
+after_script: set +e
+
+before_deploy:
+  - sh ci/before_deploy.sh
+
+deploy:
+  api_key:
+    secure: "hpTt26uYHilPOJqrC1NrhaYJCK0dMr4J+LYmRbhlbshoyVs0JMjRvsBzVUthYtQ9796CG4A8vNkw2sOjo+EVeassoB/40/TEAgmrTAq3aaT6zacUnslOeFsSwT9gL1Foz5k2zCKtfg5uJNHhq4D4OwjgEKngIMlSnIVIxPlY9D9KhdJr63Vz2Y8EWZP9wCB5PhEmJ40hdk4lUGtmyTE6rc8o5QZdCD9OdpRuVlgVLGWKX8a9pv/DDZttwNgzwZHLjojRKw2KvJMyZQ/Lk8enI6uJiDGZ0fc7Zm0b0moIFupfCp33taZA3rd2PU61rkwIz6+y7SbayVmqxqt4x1za30LCZ5MUSctMld8Z9xUzyeX+DA/O+iHL1PBPO4b7zcu8dHxk9F7Wub4y64CVuDb8QZHc7l7XCyXddsHtHxVgu+5gcli/oFuntD6fn5Wbau+5RISpy/KnwhfR79bozsODNMSVUYf1ZI51/No7k2aaN3a57oTXr1/+520wTIdwSxlpbZIUo8qEGRcy4CFXPUwjEKlVvF74NKW7VrAwux0df2zLXPJSSHx7DaJYgtCEFkT8M0JUYSLOLAIYnlM9QVjoMdJPPKQejLVteQ4Z7gAOzzD9qSvonKZ8cVwMLYXUkwrKdEfiUaM678etpw5k2WwwHVHd+62KjCXm4x7soz2L64w="
+  file_glob: true
+  file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
+  on:
+    condition: $TRAVIS_RUST_VERSION = stable
+    tags: true
+  provider: releases
+  skip_cleanup: true
+
+cache: cargo
+before_cache:
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
+
+branches:
+  only:
+    # release tags
+    - /^v\d+\.\d+\.\d+.*$/
+
+notifications:
+  email:
+    on_success: never
