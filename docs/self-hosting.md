@@ -134,7 +134,7 @@ In the [PostgreSQL section](#postgresql), we downloaded PostreSQL but did not cr
 
 ```postgres://arius:12345678@localhost:5432/tvm_assist```
 
-`.env` file should look like this:
+And the `.env` file should look like this:
 
 ```text
 DISCORD_TOKEN=YOUR_BOT_TOKEN
@@ -236,7 +236,7 @@ Make sure you use these commands **inside** `psql`.
 
 If you used method 1 (downloaded precompiled binary of the bot), all you need to do now is download [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and then [run the bot](#running-the-bot).
 
-If you used method 2 (downloaded source code), you'll need to install RUst (if you haven't already), [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and finally [build and run the bot](#running-the-bot).
+If you used method 2 (downloaded source code), you'll need to install Rust (if you haven't already), [wkhtmltopdf](#wkhtmltopdf) if you need `format` command and finally [build and run the bot](#running-the-bot).
 
 ### Rust
 
@@ -331,7 +331,7 @@ To update the bot, you'll have to download a new precompiled binary from the rel
 
 After downloading it, you'll have to run sqlx migrations. If you have `sqlx-cli` downloaded, you simply need to run the following command:
 
-```sqlx run migrations```
+```sqlx migrate run```
 
 If not, you'll find manual migration details on the [Releases](https://github.com/AriusX7/tvm-assistant/releases) page.
 
