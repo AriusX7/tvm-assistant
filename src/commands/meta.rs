@@ -1,7 +1,8 @@
 // Meta commands related to the bot directly are defined here.
 
-use crate::{utils::constants::*, ConnectionPool};
+use crate::{utils::constants::*, ConnectionPool, ShardManagerContainer};
 use serenity::{
+    client::bridge::gateway::ShardId,
     framework::standard::{
         macros::{command, group},
         Args, CommandError, CommandResult,
@@ -185,18 +186,42 @@ async fn set_prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+/// Shows the bot latency.
+///
+/// **Usage:** `[p]ping`
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+    let shard_manager = match data.get::<ShardManagerContainer>() {
+        Some(v) => v,
+        None => {
+            msg.channel_id.say(&ctx.http, "There was a problem getting the shard manager.").await?;
+            return Ok(());
+        },
+    };
+
+    let manager = shard_manager.lock().await;
+    let runners = manager.runners.lock().await;
+
+    let runner = match runners.get(&ShardId(ctx.shard_id)) {
+        Some(runner) => runner,
+        None => {
+            msg.channel_id.say(&ctx.http, "No shard found.").await?;
+            return Ok(());
+        },
+    };
+
+    let shard_latency_str = match runner.latency {
+        Some(ms) => format!("Shard latency in {:.2}ms.", ms.as_micros() as f32 / 1000.0),
+        _ => String::from("Heartbeat not sent yet."),
+    };
+
     let now = Instant::now();
     let mut message = msg.channel_id.say(&ctx.http, "Pinging...").await?;
     let post_latency = now.elapsed().as_millis();
 
-    let now = Instant::now();
-    reqwest::get("https://discord.com/api/v6/gateway").await?;
-    let get_latency = now.elapsed().as_millis();
-
     message.edit(ctx, |m| {
-        m.content(format!("Pong! Latencies - GET: {}ms, POST: {}ms", get_latency, post_latency))
+        m.content(format!("Pong! That took {}ms. {}", post_latency, shard_latency_str))
     }).await?;
 
     Ok(())
