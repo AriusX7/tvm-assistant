@@ -3,13 +3,10 @@
 use crate::ConnectionPool;
 use log::error;
 use serenity::{model::prelude::Guild, prelude::Context};
-use sqlx::postgres::{PgPool, PgPoolOptions};
+use sqlx::postgres::PgPool;
 
 pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Error>> {
-    let pool = PgPoolOptions::new()
-        .max_connections(20)
-        .connect(&pg_url)
-        .await?;
+    let pool = PgPool::builder().max_size(20).build(&pg_url).await?;
 
     Ok(pool)
 }

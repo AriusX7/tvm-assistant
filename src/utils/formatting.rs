@@ -1,12 +1,6 @@
 // Various functions to format text and files.
 
-use comrak::{
-    markdown_to_html,
-    ComrakOptions,
-    ComrakExtensionOptions,
-    ComrakParseOptions,
-    ComrakRenderOptions
-};
+use comrak::{markdown_to_html, ComrakOptions};
 use log::error;
 use serenity::{http::AttachmentType, model::prelude::Message};
 use std::{borrow::Cow, fmt::Write as FmtWrite, fs, io::Write, path::Path};
@@ -198,18 +192,12 @@ pub(crate) async fn markdown_to_files<'a>(
     let html = markdown_to_html(
         text,
         &ComrakOptions {
-            extension: ComrakExtensionOptions {
-                table: true,
-                strikethrough: true,
-                superscript: true,
-                autolink: true,
-                ..Default::default()
-            },
-            parse: ComrakParseOptions::default(),
-            render: ComrakRenderOptions {
-                github_pre_lang: true,
-                ..Default::default()
-            }
+            github_pre_lang: true,
+            ext_table: true,
+            ext_strikethrough: true,
+            ext_superscript: true,
+            ext_autolink: true,
+            ..Default::default()
         },
     );
 
