@@ -22,7 +22,7 @@ main() {
 
     # TODO Update this to package the right artifacts
     cp target/$TARGET/release/tvm-assistant $stage/
-    cp README.md LICENSE .env.example $stage/
+    cp README.md .env.example LICENSE $stage/
     cp -R migrations $stage/
 
     cd $stage
