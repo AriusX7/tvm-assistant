@@ -282,11 +282,7 @@ async fn set_role(
 ) -> CommandResult {
     let guild_id = match msg.guild_id {
         Some(i) => i,
-        None => {
-            return Err(CommandError::from(
-                "There was an error getting this server",
-            ))
-        }
+        None => return Err(CommandError::from("There was an error getting this server")),
     };
     let input = match args.remains() {
         Some(i) => i,
