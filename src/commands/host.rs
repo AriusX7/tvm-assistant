@@ -173,13 +173,12 @@ async fn sync_total(ctx: &Context, msg: &Message) -> CommandResult {
     let players: Vec<i64> = guild
         .members
         .values()
-        .filter_map(
-            |m| {
-                if m.roles.contains(&role.id) {
-                    Some(m.user.id.0 as i64)
-                } else {
-                    None
-                }
+        .filter_map(|m| {
+            if m.roles.contains(&role.id) {
+                Some(m.user.id.0 as i64)
+            } else {
+                None
+            }
         })
         .collect();
 

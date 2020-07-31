@@ -195,9 +195,11 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let shard_manager = match data.get::<ShardManagerContainer>() {
         Some(v) => v,
         None => {
-            msg.channel_id.say(&ctx.http, "There was a problem getting the shard manager.").await?;
+            msg.channel_id
+                .say(&ctx.http, "There was a problem getting the shard manager.")
+                .await?;
             return Ok(());
-        },
+        }
     };
 
     let manager = shard_manager.lock().await;
@@ -208,7 +210,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         None => {
             msg.channel_id.say(&ctx.http, "No shard found.").await?;
             return Ok(());
-        },
+        }
     };
 
     let shard_latency_str = match runner.latency {
@@ -220,9 +222,14 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let mut message = msg.channel_id.say(&ctx.http, "Pinging...").await?;
     let post_latency = now.elapsed().as_millis();
 
-    message.edit(ctx, |m| {
-        m.content(format!("Pong! That took {}ms. {}", post_latency, shard_latency_str))
-    }).await?;
+    message
+        .edit(ctx, |m| {
+            m.content(format!(
+                "Pong! That took {}ms. {}",
+                post_latency, shard_latency_str
+            ))
+        })
+        .await?;
 
     Ok(())
 }
