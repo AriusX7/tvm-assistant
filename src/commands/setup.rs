@@ -252,13 +252,13 @@ pub async fn set_all_roles(ctx: &Context, msg: &Message) -> CommandResult {
                     &ctx.http,
                     format!(
                         "
-                    **Created Roles:**\
-                    \n\nHost: `{}`\
-                    \nPlayer: `{}`\
-                    \nSpectator: `{}\
-                    `\nReplacement: `{}`\
-                    \nDead: `{}`
-                    ",
+                        **Created Roles:**\
+                        \n\nHost: `{}`\
+                        \nPlayer: `{}`\
+                        \nSpectator: `{}`\
+                        \nReplacement: `{}`\
+                        \nDead: `{}`
+                        ",
                         host_role.name,
                         player_role.name,
                         spec_role.name,
