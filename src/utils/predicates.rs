@@ -14,19 +14,11 @@ pub async fn yes_or_no_pred(
 ) -> Result<bool, CommandError> {
     match &confirm_msg.react(&ctx.http, '✅').await {
         Ok(_) => (),
-        Err(_) => {
-            return Err(CommandError::from(
-                "I cannot add reactions to the message.",
-            ))
-        }
+        Err(_) => return Err(CommandError::from("I cannot add reactions to the message.")),
     };
     match &confirm_msg.react(&ctx.http, '❌').await {
         Ok(_) => (),
-        Err(_) => {
-            return Err(CommandError::from(
-                "I cannot add reactions to the message.",
-            ))
-        }
+        Err(_) => return Err(CommandError::from("I cannot add reactions to the message.")),
     };
 
     let collected_reaction = match confirm_msg

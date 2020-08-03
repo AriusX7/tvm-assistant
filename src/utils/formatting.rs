@@ -1,11 +1,8 @@
 // Various functions to format text and files.
 
 use comrak::{
-    markdown_to_html,
-    ComrakOptions,
-    ComrakExtensionOptions,
-    ComrakParseOptions,
-    ComrakRenderOptions
+    markdown_to_html, ComrakExtensionOptions, ComrakOptions, ComrakParseOptions,
+    ComrakRenderOptions,
 };
 use log::error;
 use serenity::{http::AttachmentType, model::prelude::Message};
@@ -209,7 +206,7 @@ pub(crate) async fn markdown_to_files<'a>(
             render: ComrakRenderOptions {
                 github_pre_lang: true,
                 ..Default::default()
-            }
+            },
         },
     );
 
