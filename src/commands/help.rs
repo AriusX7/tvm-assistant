@@ -31,7 +31,7 @@ pub async fn help_command(
     _owners: HashSet<UserId>,
 ) -> CommandResult {
     // get prefix for the guild.
-    let prefix = match dynamic_prefix(&ctx, &msg).await {
+    let prefix = match dynamic_prefix(&ctx, &msg.guild_id).await {
         Some(p) => p,
         None => String::from("-"),
     };

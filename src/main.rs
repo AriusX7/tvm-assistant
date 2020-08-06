@@ -19,7 +19,7 @@ use serenity::{
     model::{
         event::ResumedEvent,
         gateway::Ready,
-        prelude::{ChannelId, Guild, Message, MessageId, MessageUpdateEvent, UserId},
+        prelude::*,
     },
     prelude::*,
 };
@@ -157,8 +157,9 @@ async fn on_dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
     }
 }
 
-// This function executes every time a command finishes executing.
-// It's used here to handle errors that happen in the middle of the command.
+/// This function executes every time a command finishes executing.
+///
+/// It's used here to handle errors that happen in the middle of the command.
 #[hook]
 async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResult) {
     if let Err(why) = &error {
@@ -175,13 +176,10 @@ async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResul
     }
 }
 
+/// Sets a custom prefix for a guild.
 #[hook]
-// Sets a custom prefix for a guild.
-pub async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
-    let guild_id = &msg.guild_id;
-
-    let prefix: String;
-    if let Some(id) = guild_id {
+pub async fn dynamic_prefix(ctx: &Context, guild_id: &Option<GuildId>) -> Option<String> {
+    let prefix = if let Some(id) = guild_id {
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -192,7 +190,7 @@ pub async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
         .fetch_one(pool)
         .await;
 
-        prefix = if let Ok(data) = res {
+        if let Ok(data) = res {
             if let Some(p) = data.prefix {
                 p
             } else {
@@ -203,7 +201,7 @@ pub async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
             "-".to_string()
         }
     } else {
-        prefix = "-".to_string();
+        "-".to_string()
     };
 
     Some(prefix)
@@ -239,7 +237,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let framework = StandardFramework::new()
         .configure(|c| {
             c.owners(owners)
-                .dynamic_prefix(dynamic_prefix)
+                .dynamic_prefix(|ctx, msg| Box::pin(async move {
+                    dynamic_prefix(ctx, &msg.guild_id).await
+                }))
                 .with_whitespace(true)
                 .on_mention(Some(bot_id))
         })
