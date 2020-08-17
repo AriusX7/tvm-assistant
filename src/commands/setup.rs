@@ -3,7 +3,6 @@
 use crate::{
     utils::{
         checks::*, constants::EMBED_COLOUR, converters::*, database::initialize_tables,
-        predicates::yes_or_no_pred,
     },
     ConnectionPool,
 };
@@ -17,6 +16,7 @@ use serenity::{
     model::{misc::Mentionable, prelude::*},
     prelude::*,
 };
+use serenity_utils::prompt::yes_or_no_prompt;
 use sqlx::types::Json;
 use std::fmt::Write;
 
@@ -315,16 +315,12 @@ async fn set_role(
         )
         .await?;
 
-    match yes_or_no_pred(&ctx, &msg, &confirmation_msg).await {
-        Ok(c) if !c => {
-            msg.channel_id
-                .say(&ctx.http, format!("{} role setup cancelled.", role_type))
-                .await?;
-            return Ok(());
-        }
-        Ok(_) => (),
-        Err(e) => return Err(e),
-    };
+    if !yes_or_no_prompt(&ctx, &confirmation_msg, &msg.author, 30.0).await? {
+        msg.channel_id
+            .say(&ctx.http, format!("{} role setup cancelled.", role_type))
+            .await?;
+        return Ok(());
+    }
 
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
@@ -591,19 +587,15 @@ async fn set_channel(
         )
         .await?;
 
-    match yes_or_no_pred(&ctx, &msg, &confirmation_msg).await {
-        Ok(c) if !c => {
-            msg.channel_id
-                .say(
-                    &ctx.http,
-                    format!("{} channel setup cancelled.", channel_type),
-                )
-                .await?;
-            return Ok(());
-        }
-        Ok(_) => (),
-        Err(e) => return Err(e),
-    };
+    if !yes_or_no_prompt(&ctx, &confirmation_msg, &msg.author, 30.0).await? {
+        msg.channel_id
+            .say(
+                &ctx.http,
+                format!("{} channel setup cancelled.", channel_type),
+            )
+            .await?;
+        return Ok(());
+    }
 
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
