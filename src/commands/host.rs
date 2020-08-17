@@ -2,7 +2,7 @@
 
 use crate::{
     commands::setup::Cycle,
-    utils::{checks::*, constants::EMBED_COLOUR, converters::*, predicates::yes_or_no_pred},
+    utils::{checks::*, constants::EMBED_COLOUR, converters::*},
     ConnectionPool,
 };
 use rand::Rng;
@@ -14,6 +14,7 @@ use serenity::{
     model::{misc::Mentionable, prelude::*},
     prelude::*,
 };
+use serenity_utils::prompt::yes_or_no_prompt;
 use sqlx::types::Json;
 use std::fmt::Write;
 
@@ -299,16 +300,12 @@ async fn players_chats(ctx: &Context, msg: &Message, args: Args) -> CommandResul
         .say(&ctx.http, "Are you sure you want to create player chats?")
         .await?;
 
-    match yes_or_no_pred(&ctx, &msg, &confirm_msg).await {
-        Ok(b) if b => (),
-        Ok(_) => {
-            msg.channel_id
-                .say(&ctx.http, "Cancelled player chats creation.")
-                .await?;
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-    };
+    if !yes_or_no_prompt(&ctx, &confirm_msg, &msg.author, 30.0).await? {
+        msg.channel_id
+            .say(&ctx.http, "Cancelled player chats creation.")
+            .await?;
+        return Ok(());
+    }
 
     let me = ctx.cache.current_user().await;
     let default_role = RoleId(guild.id.0);
@@ -710,16 +707,12 @@ async fn create_cycle(ctx: &Context, msg: &Message, args: Args) -> CommandResult
         )
         .await?;
 
-    match yes_or_no_pred(&ctx, &msg, &confirm_msg).await {
-        Ok(b) if b => (),
-        Ok(_) => {
-            msg.channel_id
-                .say(&ctx.http, "Cancelled cycle creation.")
-                .await?;
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-    };
+    if !yes_or_no_prompt(&ctx, &confirm_msg, &msg.author, 30.0).await? {
+        msg.channel_id
+            .say(&ctx.http, "Cancelled cycle creation.")
+            .await?;
+        return Ok(());
+    }
 
     // User confirmed. Let's do it.
     let role = match get_role(ctx, guild.id, data.player_role_id).await {
@@ -917,16 +910,12 @@ async fn night(ctx: &Context, msg: &Message) -> CommandResult {
         )
         .await?;
 
-    match yes_or_no_pred(&ctx, &msg, &confirm_msg).await {
-        Ok(b) if b => (),
-        Ok(_) => {
-            msg.channel_id
-                .say(&ctx.http, "Cancelled starting of night.")
-                .await?;
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-    };
+    if !yes_or_no_prompt(&ctx, &confirm_msg, &msg.author, 30.0).await? {
+        msg.channel_id
+            .say(&ctx.http, "Cancelled starting of night.")
+            .await?;
+        return Ok(());
+    }
 
     let day: GuildChannel = match get_channel_from_id(ctx, guild.id, cycle.day).await {
         Ok(c) => c,

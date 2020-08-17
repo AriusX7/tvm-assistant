@@ -6,5 +6,4 @@ pub mod embed;
 pub mod formatting;
 pub mod menu;
 pub mod message;
-pub mod predicates;
 pub mod tos;
