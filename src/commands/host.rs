@@ -1328,6 +1328,11 @@ async fn player_list(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
     Ok(())
 }
 
+/// Shows information about the current cycle.
+///
+/// **Usage:** `[p]current`
+///
+/// I need the permission to embed links in the specified channel.
 #[command]
 async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = match msg.guild(ctx).await {
