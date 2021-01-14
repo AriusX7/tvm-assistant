@@ -18,7 +18,7 @@ use serenity::{
     prelude::Context,
 };
 
-use log::error;
+use tracing::{error, instrument};
 
 pub(crate) struct LogSettings {
     // `guild_id` exists here so we can use `*` in sql queries.
@@ -30,6 +30,7 @@ pub(crate) struct LogSettings {
     pub(crate) whitelist_channel_ids: Option<Vec<i64>>,
 }
 
+#[instrument(skip(ctx))]
 pub(crate) async fn message_update_handler(
     ctx: Context,
     old_if_available: Option<Message>,
@@ -161,6 +162,7 @@ pub(crate) async fn message_delete_handler(
     };
 }
 
+#[instrument(skip(ctx))]
 pub(crate) async fn message_delete_bulk_handler(
     ctx: Context,
     channel_id: ChannelId,
@@ -246,6 +248,7 @@ pub(crate) async fn message_delete_bulk_handler(
     }
 }
 
+#[instrument(skip(ctx))]
 async fn cached_message_handler(ctx: &Context, message: &Message) {
     let content = &message.content;
 
@@ -368,6 +371,7 @@ async fn cached_message_handler(ctx: &Context, message: &Message) {
     }
 }
 
+#[instrument(skip(ctx))]
 async fn uncached_message_handler(ctx: &Context, channel_id: ChannelId, message_id: MessageId) {
     let channel = match channel_id.to_channel(&ctx.http).await {
         Ok(c) => {

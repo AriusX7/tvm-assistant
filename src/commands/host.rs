@@ -112,7 +112,7 @@ async fn randomize_roles(ctx: &Context, msg: &Message, args: Args) -> CommandRes
     for player in players {
         // We can unwrap here safely because lengths are equal.
         let mut rng = rand::thread_rng();
-        let index = rng.gen_range(0, args.len());
+        let index = rng.gen_range(0..args.len());
 
         write!(
             assigned_roles,
@@ -1274,7 +1274,7 @@ async fn player_list(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
         }
     };
 
-    let players: Vec<String> = guild
+    let players: Vec<_> = guild
         .members
         .values()
         .filter_map(|m| {
