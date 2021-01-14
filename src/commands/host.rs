@@ -286,10 +286,7 @@ async fn total_signups(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("pc")]
 async fn players_chats(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // Optionally specified category name
-    let cat_name = match args.remains() {
-        Some(n) => n,
-        None => "Private Chats",
-    };
+    let cat_name = args.remains().unwrap_or("Private Chats");
 
     let guild = match msg.guild(ctx).await {
         Some(i) => i,
