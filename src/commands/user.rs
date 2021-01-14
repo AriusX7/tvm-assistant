@@ -1781,7 +1781,14 @@ fn format_day(day: u32) -> String {
     }
 }
 
+/// Pings the Players role to notify them of a message.
+///
+/// **Usage:** `[p]notify <msg>`
+///
+/// The command has a cooldown to discourage spam mentions. The cooldown defaults to
+/// once per 6 hours in a particular server. A server's cooldown can be changed by a host.
 #[command]
+#[min_args(1)]
 async fn notify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let guild = match msg.guild(ctx).await {
         Some(i) => i,
