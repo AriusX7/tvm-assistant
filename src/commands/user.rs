@@ -1289,10 +1289,7 @@ async fn night_action(ctx: &Context, msg: &Message, args: Args) -> CommandResult
         None => Vec::new(),
     };
 
-    let can_change_na = match data.can_change_na {
-        Some(c) => c,
-        None => true,
-    };
+    let can_change_na = data.can_change_na.unwrap_or(true);
 
     if na_submitted.contains(&(msg.author.id.0 as i64)) {
         if !can_change_na {

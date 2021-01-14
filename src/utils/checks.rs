@@ -67,13 +67,7 @@ pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> Result<()
     .fetch_one(pool)
     .await
     {
-        Ok(r) => {
-            match r.tvmset_lock {
-                Some(i) => i,
-                // Not set yet for whatever reason, false by default.
-                None => false,
-            }
-        }
+        Ok(r) => r.tvmset_lock.unwrap_or(false),
         // Not set yet for whatever reason, false by default.
         Err(_) => false,
     };
