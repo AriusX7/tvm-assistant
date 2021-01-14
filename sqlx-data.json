@@ -276,6 +276,26 @@
       "nullable": []
     }
   },
+  "301c2eb03a99539780259525fb568f2fbeb67e04148574387229f02e2c9f99e9": {
+    "query": "SELECT notify_cooldown FROM config WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "notify_cooldown",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "32e93bbd5d7b260aba40ad125c2e1f457d252828fe265495b22da4ba3b83dd06": {
     "query": "SELECT player_role_id, players, cycle FROM config WHERE guild_id = $1",
     "describe": {
@@ -329,6 +349,19 @@
         "Left": [
           "Int8",
           "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "493be8e037137c2b8cda943d54c29b3004e8e44fe479c41bd4d8d9512941371f": {
+    "query": "\n        INSERT INTO config(guild_id, notify_cooldown) VALUES($1, $2)\n        ON CONFLICT (guild_id) DO UPDATE SET notify_cooldown = $2;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int4"
         ]
       },
       "nullable": []
@@ -462,6 +495,27 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "7d5ba34fc1d3856df447e1a09a08ad9906b0a658189091d348b30efb05a79bdf": {
+    "query": "SELECT last_used FROM cooldown WHERE guild_id = $1 AND cmd = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "last_used",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        true
+      ]
     }
   },
   "8cf4d06155c93852d607749c6ce3029f8c3ca6216e516dff0f03327e0bb2b0ed": {
@@ -795,23 +849,28 @@
         },
         {
           "ordinal": 12,
-          "name": "total_signups",
-          "type_info": "Int2"
-        },
-        {
-          "ordinal": 13,
           "name": "na_submitted",
           "type_info": "Int8Array"
         },
         {
-          "ordinal": 14,
+          "ordinal": 13,
           "name": "cycle",
           "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 14,
+          "name": "total_signups",
+          "type_info": "Int2"
         },
         {
           "ordinal": 15,
           "name": "players",
           "type_info": "Int8Array"
+        },
+        {
+          "ordinal": 16,
+          "name": "notify_cooldown",
+          "type_info": "Int4"
         }
       ],
       "parameters": {
@@ -821,6 +880,7 @@
       },
       "nullable": [
         false,
+        true,
         true,
         true,
         true,
@@ -848,6 +908,20 @@
           "Int8",
           "Int8",
           "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f0171d14880b69d8d38974d403cc60a5075a26b445f61ccd8901dbcc05855455": {
+    "query": "\n        INSERT INTO cooldown VALUES (\n            $1,\n            $2,\n            $3\n        ) ON CONFLICT (guild_id, cmd)\n        DO UPDATE SET last_used = $3;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Timestamptz"
         ]
       },
       "nullable": []
