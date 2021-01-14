@@ -1050,10 +1050,10 @@ async fn night(ctx: &Context, msg: &Message) -> CommandResult {
 
 /// Returns night actions channel if it exists. If it doesn't, it creates
 /// a new channel, adds it to the database, and then returns it.
-pub(crate) async fn get_na_channel<'a>(
+pub(crate) async fn get_na_channel(
     ctx: &Context,
     guild: &Guild,
-    pool: &'a sqlx::PgPool,
+    pool: &sqlx::PgPool,
 ) -> Result<GuildChannel, &'static str> {
     let na_channel_id = match sqlx::query!(
         "SELECT na_channel_id FROM config WHERE guild_id = $1;",
