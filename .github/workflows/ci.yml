@@ -6,8 +6,8 @@ on:
   pull_request:
   push:
 jobs:
-  build:
-    name: build
+  test:
+    name: test
     env:
       # For some builds, we use cross to test on 32-bit and big-endian
       # systems.
