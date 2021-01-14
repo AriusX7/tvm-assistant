@@ -6,19 +6,20 @@
 //! [`Red-DiscordBot`]: https://github.com/Cog-Creators/Red-DiscordBot/
 
 use crate::dynamic_prefix;
-use crate::utils::{
-    constants::{COMMANDS_REFERENCE, EMBED_COLOUR, QUICKSTART},
-    embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter},
-    formatting::{pagify, PagifyOptions},
-    menu::{menu, MenuOptions},
-};
+use crate::utils::constants::{COMMANDS_REFERENCE, EMBED_COLOUR, QUICKSTART};
 use serenity::{
+    builder::CreateMessage,
     framework::standard::{
-        help_commands::has_all_requirements, Args, Command, CommandError, CommandGroup,
+        help_commands::has_all_requirements, Args, Command, CommandGroup,
         CommandResult, HelpOptions,
     },
     model::prelude::{Message, UserId},
     prelude::Context,
+};
+use serenity_utils::{
+    menu::{Menu, MenuOptions},
+    builder::embed::{EmbedBuilder, EmbedFieldBuilder},
+    formatting::{pagify, PagifyOptions},
 };
 use std::{collections::HashSet, fmt::Write};
 
@@ -136,8 +137,9 @@ async fn send_bot_help(
         if group_text.is_empty() {
             continue;
         }
-        let pagify_options = PagifyOptions::new().page_length(1000).shorten_by(0);
-        let pages = pagify(group_text, Some(pagify_options));
+        let mut pagify_options = PagifyOptions::new();
+        pagify_options.page_length(1000).shorten_by(0);
+        let pages = pagify(group_text, pagify_options);
         for (i, page) in pages.iter().enumerate() {
             if i >= 1 {
                 let _ = write!(title, " **(continued)**");
@@ -147,14 +149,15 @@ async fn send_bot_help(
         }
     }
 
-    let embed = Embed::new()
-        .description(format!(
+    let mut embed = EmbedBuilder::new();
+    embed
+        .set_description(format!(
             "Please visit [this page]({}) for full list of commands.\
                 \nSet up the bot for your server by following this [quickstart guide]({}).",
             COMMANDS_REFERENCE, QUICKSTART,
         ))
-        .fields(group_fields)
-        .footer(EmbedFooter::new(get_footer(&prefix)));
+        .add_fields(group_fields)
+        .set_footer_with(|f| f.set_text(get_footer(&prefix)));
 
     make_and_send_embeds(ctx, msg, &embed).await
 }
@@ -217,15 +220,15 @@ async fn send_group_help(
         field_value = String::from("You cannot use any commands.");
     }
 
-    let embed = Embed::new()
-        .description(format_description(
+    let mut embed = EmbedBuilder::new();
+        embed.set_description(format_description(
             group.options.description,
             true,
             bot_name,
             prefix,
         ))
-        .footer(EmbedFooter::new(get_footer(prefix)))
-        .field((format!("**{}**", group.name), field_value, false));
+        .set_footer_with(|f| f.set_text(get_footer(prefix)))
+        .add_field((format!("**{}**", group.name), field_value, false));
 
     make_and_send_embeds(ctx, msg, &embed).await
 }
@@ -259,10 +262,10 @@ async fn send_command_help(
         &user.name,
     );
 
-    let embed = Embed::new()
-        .title(format!("Command: {}", name))
-        .description(desc)
-        .footer(EmbedFooter::new(get_footer(main_prefix)));
+    let mut embed = EmbedBuilder::new();
+        embed.set_title(format!("Command: {}", name))
+        .set_description(desc)
+        .set_footer_with(|f| f.set_text(get_footer(main_prefix)));
 
     make_and_send_embeds(ctx, msg, &embed).await
 }
@@ -280,7 +283,7 @@ fn get_footer(prefix: &str) -> String {
     )
 }
 
-fn group_embed_fields(fields: &[EmbedField], max_chars: usize) -> Vec<Vec<&EmbedField>> {
+fn group_embed_fields(fields: &[EmbedFieldBuilder], max_chars: usize) -> Vec<Vec<&EmbedFieldBuilder>> {
     let mut current_group = Vec::new();
     let mut ret = Vec::new();
 
@@ -305,24 +308,24 @@ fn group_embed_fields(fields: &[EmbedField], max_chars: usize) -> Vec<Vec<&Embed
     ret
 }
 
-async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &Embed) -> CommandResult {
-    let mut pages: Vec<Embed> = Vec::new();
+async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &EmbedBuilder) -> CommandResult {
+    let mut pages = Vec::new();
 
     let mut page_char_limit = 750;
     let user = &ctx.cache.current_user().await;
 
-    let author = EmbedAuthor::new(format!("{} Help", user.name)).icon_url(user.face());
+    let author_name = format!("{} Help", user.name);
 
     // Offset calculation for total embed size.
     // 20 accounts for `*Page {i} of {page_count}*`
-    let mut offset = &author.name.len() + 20;
+    let mut offset = author_name.len() + 20;
 
     if let Some(footer) = &embed.footer {
         offset += footer.text.len();
     }
 
-    offset += embed.description.as_ref().unwrap_or(&"".to_string()).len();
-    offset += embed.title.as_ref().unwrap_or(&"".to_string()).len();
+    offset += embed.description.as_ref().map(|d| d.len()).unwrap_or_default();
+    offset += embed.title.as_ref().map(|t| t.len()).unwrap_or_default();
 
     if page_char_limit + offset > 5500 {
         page_char_limit = 5500 - offset;
@@ -336,24 +339,26 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &Embed) -> Co
     if field_groups.is_empty() {
         let mut embed = embed.clone();
         // `embed` may have fields already set in. We need to clear them.
-        embed.fields = Vec::new();
+        embed.fields.clear();
 
-        embed = embed.colour(EMBED_COLOUR).author(author.clone());
+        embed.set_colour(EMBED_COLOUR).set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
 
-        pages.push(embed);
+        let mut page = CreateMessage::default();
+        page.set_embed(embed.to_create_embed());
+        pages.push(page);
     }
 
     for (i, group) in field_groups.iter().enumerate() {
         let mut embed = embed.clone();
 
         // `embed` may have fields already set in. We need to clear them.
-        embed.fields = Vec::new();
+        embed.fields.clear();
 
-        embed = embed.colour(EMBED_COLOUR).author(author.clone());
+        embed.set_colour(EMBED_COLOUR).set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
 
         // Just some weird adjustment.
-        let mut prev_field: Option<&&EmbedField> = None;
-        for (j, field) in group.iter().enumerate() {
+        let mut prev_field: Option<&EmbedFieldBuilder> = None;
+        for (j, &field) in group.iter().enumerate() {
             match prev_field {
                 Some(prev) => {
                     let prev_name = prev.name.replace("**", "");
@@ -361,44 +366,41 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &Embed) -> Co
                     let merged_value = format!("{}{}", prev.name, name);
                     let merge = merged_value.len() <= 1024;
                     if name.contains(&prev_name) && merge {
-                        embed = embed.set_field_at(
+                        embed.set_field_at(
                             j - 1,
-                            EmbedField::new(
+                            EmbedFieldBuilder::new(
                                 format!("**{}**", prev_name),
                                 merged_value,
                                 field.inline,
                             ),
                         );
                     } else {
-                        embed =
-                            embed.field((field.name.clone(), field.value.clone(), field.inline));
+                        embed.add_field((&field.name, &field.value, field.inline));
                     }
                 }
                 None => {
-                    embed = embed.field((field.name.clone(), field.value.clone(), field.inline));
+                    embed.add_field((&field.name, &field.value, field.inline));
                 }
             }
             prev_field = Some(field);
         }
 
         if total_pages > 1 {
-            if let Some(footer) = embed.footer.clone() {
-                let footer_text = format!("Page {} of {} | {}", i + 1, total_pages, footer.text);
-                let mut new_footer = EmbedFooter::new(footer_text);
-                if let Some(icon_url) = footer.icon_url {
-                    new_footer = new_footer.icon_url(icon_url);
-                }
-                embed = embed.footer(new_footer);
+            if let Some(footer) = &mut embed.footer {
+                footer.set_text(format!("Page {} of {} | {}", i + 1, total_pages, &footer.text));
             }
         }
 
-        pages.push(embed);
+        let mut page = CreateMessage::default();
+        page.set_embed(embed.to_create_embed());
+        pages.push(page);
     }
 
-    match menu(ctx, msg, pages.as_slice(), MenuOptions::default()).await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(CommandError::from(e.0)),
-    }
+    let menu = Menu::new(ctx, msg, pages.as_slice(), MenuOptions::default());
+
+    menu.run().await?;
+
+    Ok(())
 }
 
 async fn command_check(
