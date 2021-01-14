@@ -1,5 +1,5 @@
-// This module contains commands and related functiosn for general
-// users, like players, spectators and replacements.
+//! This module contains commands and related functiosn for general
+//! users, like players, spectators and replacements.
 
 use crate::{
     commands::{
@@ -763,7 +763,7 @@ async fn all_replacements(ctx: &Context, msg: &Message) -> CommandResult {
 /// The bot only shows votes of *alive* players. If you want to get the votes of all players,
 /// add "--all" at the end of command.
 ///
-/// **Example**
+/// **Examples**
 ///
 /// Command: `[p]vc`
 /// Result: The bot tries to find voting channel and displays votes of *alive* players if it
@@ -1591,7 +1591,7 @@ async fn top_cmd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 /// the votes in that channel. If the bot is unable to detect a voting channel, you'll have
 /// to pass the channel before the user.
 ///
-/// **Example**
+/// **Examples**
 ///
 /// *Assuming host used `cycle` command and the latest voting channel is `day-5-voting`*
 ///

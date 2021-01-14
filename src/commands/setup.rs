@@ -1,4 +1,4 @@
-// Commands related to TvM's setup are defined here.
+//! Commands related to TvM's setup are defined here.
 
 use crate::{
     utils::{checks::*, constants::EMBED_COLOUR, converters::*, database::initialize_tables},

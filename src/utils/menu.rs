@@ -1,10 +1,10 @@
-// Functionality to send a reaction-based menu. It is currently very bare-bones, with
-// only three reactions and very few customisation options.
-//
-// The functionality has been ported from [`Red-DiscordBot`]'s [`menu`] function.
-//
-// [`Red-DiscordBot`]: https://github.com/Cog-Creators/Red-DiscordBot/
-// [`menu`]: https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/utils/menus.py#L18
+//! Functionality to send a reaction-based menu. It is currently very bare-bones, with
+//! only three reactions and very few customisation options.
+//!
+//! The functionality has been ported from [`Red-DiscordBot`]'s [`menu`] function.
+//!
+//! [`Red-DiscordBot`]: https://github.com/Cog-Creators/Red-DiscordBot/
+//! [`menu`]: https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/utils/menus.py#L18
 
 use super::embed::Embed;
 use futures::stream::StreamExt;

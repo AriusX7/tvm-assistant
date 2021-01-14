@@ -1,4 +1,4 @@
-// Constants to use throughout the source.
+//! Constants to use throughout the source.
 
 use serenity::utils::Colour;
 

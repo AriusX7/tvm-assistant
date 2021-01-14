@@ -1,9 +1,9 @@
-// Custom help for the bot. The functions defined here are very hacky,
-// but sufficient for this bot.
-//
-// A lot of functionality has been borrowed from [`Red-DiscordBot`]'s help command.
-//
-// [`Red-DiscordBot`]: https://github.com/Cog-Creators/Red-DiscordBot/
+//! Custom help for the bot. The functions defined here are very hacky,
+//! but sufficient for this bot.
+//!
+//! A lot of functionality has been borrowed from [`Red-DiscordBot`]'s help command.
+//!
+//! [`Red-DiscordBot`]: https://github.com/Cog-Creators/Red-DiscordBot/
 
 use crate::dynamic_prefix;
 use crate::utils::{

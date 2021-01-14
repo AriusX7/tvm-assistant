@@ -1,4 +1,4 @@
-// Obtain database pool from values in the `config.toml` file.
+//! Obtain database pool from values in the `config.toml` file.
 
 use crate::ConnectionPool;
 use serenity::{model::prelude::Guild, prelude::Context};
