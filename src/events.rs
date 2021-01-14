@@ -4,7 +4,7 @@
 
 use crate::{
     utils::{
-        converters::get_channel_from_id, embed::*, formatting::text_to_file, message::get_jump_url,
+        converters::get_channel_from_id, message::get_jump_url,
     },
     ConnectionPool,
 };
@@ -17,6 +17,7 @@ use serenity::{
     },
     prelude::Context,
 };
+use serenity_utils::{prelude::EmbedBuilder, formatting::text_to_file};
 
 use tracing::{error, instrument};
 
@@ -95,52 +96,34 @@ pub(crate) async fn message_update_handler(
     };
 
     // All checks passed. We'll log the message now.
-    let mut embed = Embed::new()
-        .colour(0xFF9300)
-        .timestamp(Utc::now().to_rfc3339())
-        .description(format!(
+    let mut embed = EmbedBuilder::new();
+    embed
+        .set_colour(0xFF9300)
+        .set_timestamp(Utc::now().to_rfc3339())
+        .set_description(format!(
             "[Click here to jump to the message.]({})",
             get_jump_url(&new)
         ));
 
-    let before = get_added_fields_and_file(&old_content, embed, "Before");
-    embed = before.0;
-    let old_file = before.1;
+    let old_file = get_added_fields_and_file(&old_content, &mut embed, "Before");
 
-    let after = get_added_fields_and_file(&new.content, embed, "After");
-    embed = after.0;
-    let new_file = after.1;
+    let new_file = get_added_fields_and_file(&new.content, &mut embed, "After");
 
-    embed = embed
-        .field(("Channel", channel.mention(), false))
-        .footer(EmbedFooter::new(format!("Message ID: {}", new.id.0)))
-        .author(
-            EmbedAuthor::new(format!(
+    embed
+        .add_field(("Channel", channel.mention(), false))
+        .set_footer_with(|f| f.set_text(format!("Message ID: {}", new.id.0)))
+        .set_author_with(|a| a.set_name(format!(
                 "{} ({}) - Edited Message",
                 new.author.tag(),
                 new.author.id.0
             ))
-            .icon_url(new.author.face()),
+            .set_icon_url(new.author.face())
         );
 
-    let mut files = Vec::new();
-    if let Some(file) = old_file {
-        files.push(file);
-    }
-    if let Some(file) = new_file {
-        files.push(file);
-    }
+    let files = vec![old_file, new_file].into_iter().flatten();
 
     let msg = &log_channel
-        .send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.0 = embed.get_create_embed().0;
-
-                e
-            });
-
-            m
-        })
+        .send_message(&ctx.http, |m| m.set_embed(embed.to_create_embed()))
         .await;
 
     // Add files in a separate message, so that files are shown after embed.
@@ -218,8 +201,6 @@ pub(crate) async fn message_delete_bulk_handler(
     };
 
     // All checks passed. Since we only store 10 messages in the cache, we'll just log the count.
-
-    // Instead of creating an `Embed`, we'll create `CreateEmbed` directly.
     let msg = log_channel
         .send_message(&ctx.http, |m| {
             m.embed(|e| {
@@ -294,7 +275,6 @@ async fn cached_message_handler(ctx: &Context, message: &Message) {
     };
 
     // Checks passed, we'll create embed now.
-
     // We'll check if we can get details of the user who deleted the message.
     let mut perp = None;
     // `action_type` is `72` for message deletes.
@@ -314,14 +294,15 @@ async fn cached_message_handler(ctx: &Context, message: &Message) {
         }
     }
 
-    let mut embed = Embed::new()
-        .description(&content)
-        .colour(0xFF0000)
-        .timestamp(Utc::now().to_rfc3339())
-        .field(("Channel", channel.mention(), true));
+    let mut embed = EmbedBuilder::new();
+    embed
+        .set_description(&content)
+        .set_colour(0xFF0000)
+        .set_timestamp(Utc::now().to_rfc3339())
+        .add_field(("Channel", channel.mention(), true));
 
     if let Some(user) = perp {
-        embed = embed.field((
+        embed.add_field((
             "Deleted By",
             format!("{} ({})", user.tag(), user.id.0),
             true,
@@ -338,32 +319,23 @@ async fn cached_message_handler(ctx: &Context, message: &Message) {
             .collect::<Vec<String>>()
             .join(", ");
 
-        embed = embed.field(("Attachments", file_names, true));
+        embed.add_field(("Attachments", file_names, true));
     }
-    embed = embed
-        .footer(EmbedFooter::new(format!(
+    embed
+        .set_footer_with(|f| f.set_text(format!(
             "Author ID: {}",
             message.author.id.0
         )))
-        .author(
-            EmbedAuthor::new(format!(
+        .set_author_with(|a| a.set_name(format!(
                 "{} ({}) - Deleted Message",
                 message.author.tag(),
                 message.author.id.0
             ))
-            .icon_url(message.author.face()),
+            .set_icon_url(message.author.face()),
         );
 
     let msg = &log_channel
-        .send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.0 = embed.get_create_embed().0;
-
-                e
-            });
-
-            m
-        })
+        .send_message(&ctx.http, |m| m.set_embed(embed.to_create_embed()))
         .await;
 
     if let Err(why) = msg {
@@ -451,26 +423,22 @@ async fn uncached_message_handler(ctx: &Context, channel_id: ChannelId, message_
 
 fn get_added_fields_and_file<'a>(
     content: &'a str,
-    embed: Embed,
+    embed: &mut EmbedBuilder,
     iden: &'a str,
-) -> (Embed, Option<AttachmentType<'a>>) {
-    let new_embed;
-    let file;
+) -> Option<AttachmentType<'a>> {
     if content.len() > 1024 {
-        let file_name = format!("{}.txt", iden.to_ascii_lowercase());
-        file = Some(text_to_file(&content, file_name));
-
         let text = format!(
             "{}...\n\nFull message attached below.",
             content[..500].trim()
         );
-        new_embed = embed.field((format!("{} Content", iden), text, true));
-    } else {
-        file = None;
-        new_embed = embed.field((format!("{} Content", iden), &content, true));
-    }
+        embed.add_field((format!("{} Content", iden), text, true));
 
-    (new_embed, file)
+        Some(text_to_file(&content, Some(format!("{}.txt", iden.to_ascii_lowercase())), false))
+    } else {
+        embed.add_field((format!("{} Content", iden), &content, true));
+
+        None
+    }
 }
 
 pub(crate) async fn is_allowed_channel(
