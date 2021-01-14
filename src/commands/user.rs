@@ -1781,6 +1781,106 @@ fn format_day(day: u32) -> String {
     }
 }
 
+#[command]
+async fn notify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let guild = match msg.guild(ctx).await {
+        Some(i) => i,
+        None => return Err(CommandError::from("Couldn't fetch details of this server.")),
+    };
+
+    let data_read = ctx.data.read().await;
+    let pool = data_read.get::<ConnectionPool>().unwrap();
+
+    let lu_res_opt = sqlx::query!(
+        "SELECT last_used FROM cooldown WHERE guild_id = $1 AND cmd = $2",
+        guild.id.0 as i64,
+        "notify",
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    let now = Utc::now();
+
+    if let Some(lu_res) = lu_res_opt {
+        if let Some(last_used) = lu_res.last_used {
+            let cd_res = sqlx::query!(
+                "SELECT notify_cooldown FROM config WHERE guild_id = $1",
+                guild.id.0 as i64,
+            )
+            .fetch_one(pool)
+            .await?;
+
+            let diff = last_used + Duration::hours(cd_res.notify_cooldown.into()) - now;
+            if diff.num_seconds() > 0 {
+                let duration_str = format_duration(diff);
+                let formatted_dur = if duration_str.trim().is_empty() {
+                    Cow::from("a few seconds")
+                } else {
+                    Cow::from(duration_str)
+                };
+
+                msg.channel_id
+                    .say(
+                        &ctx.http,
+                        format!(
+                            "This command is on a cooldown. Try again in {}.",
+                            formatted_dur
+                        ),
+                    )
+                    .await?;
+                return Ok(());
+            }
+        }
+    }
+
+    let res = sqlx::query!(
+        "SELECT player_role_id FROM config WHERE guild_id = $1",
+        guild.id.0 as i64
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let role = if let Ok(r) = get_role(ctx, guild.id, res.player_role_id).await {
+        r
+    } else {
+        msg.channel_id
+            .say(&ctx.http, "Player role has not been set up.")
+            .await?;
+
+        return Ok(());
+    };
+
+    msg.channel_id
+        .say(
+            &ctx.http,
+            format!(
+                "{role}, {player} chose to notify everyone:\n\n>>> {msg}",
+                role = role.mention(),
+                player = msg.author.mention(),
+                msg = args.rest(),
+            ),
+        )
+        .await?;
+
+    sqlx::query!(
+        r#"
+        INSERT INTO cooldown VALUES (
+            $1,
+            $2,
+            $3
+        ) ON CONFLICT (guild_id, cmd)
+        DO UPDATE SET last_used = $3;
+        "#,
+        guild.id.0 as i64,
+        "notify",
+        now,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 #[group("General")]
 #[only_in("guilds")]
 #[commands(
@@ -1795,7 +1895,8 @@ fn format_day(day: u32) -> String {
     format_text,
     tos_wiki,
     top_cmd,
-    vote_history
+    vote_history,
+    notify
 )]
 #[description("General commands for users.")]
 struct UserCommands;
