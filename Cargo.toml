@@ -42,7 +42,7 @@ features = ["collector"]
 git = "https://github.com/lumeohq/sqlx"
 branch = "tokio-1.0"
 default-features = false
-features = ["runtime-tokio-rustls", "macros", "postgres", "uuid", "offline", "json"]
+features = ["runtime-tokio-rustls", "macros", "postgres", "uuid", "offline", "json", "chrono"]
 
 [dependencies.rand]
 version = "0.8.2"

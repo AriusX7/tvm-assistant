@@ -36,6 +36,7 @@ pub struct Settings {
     pub na_submitted: Option<Vec<i64>>,
     pub cycle: Option<Json<Cycle>>,
     pub players: Option<Vec<i64>>,
+    pub notify_cooldown: i32,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -735,6 +736,62 @@ pub async fn total_players(ctx: &Context, msg: &Message, mut args: Args) -> Comm
     Ok(())
 }
 
+/// Sets the cooldown for the notify command.
+///
+/// **Usage:** `[p]notifycd <duration>`
+///
+/// The duration must the number of **hours**. The default cooldown is 6 hours.
+///
+/// **Example**
+///
+/// Command: `[p]notifycd 5`
+/// Result: Makes the notify command cooldown 5 hours.
+///
+/// This command cannot be used if the TvM settings are locked.
+#[command]
+#[checks("tvmset_lock")]
+pub async fn notifycd(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let duration: i32 = match args.single() {
+        Ok(i) => i,
+        Err(_) => {
+            msg.channel_id
+                .say(&ctx.http, "`duration` must be a valid number.")
+                .await?;
+            return Ok(());
+        }
+    };
+
+    if duration < 0 {
+        msg.channel_id
+            .say(&ctx.http, "`duration` must be a positive number.")
+            .await?;
+        return Ok(());
+    }
+
+    let data_read = ctx.data.read().await;
+    let pool = data_read.get::<ConnectionPool>().unwrap();
+
+    sqlx::query!(
+        "
+        INSERT INTO config(guild_id, notify_cooldown) VALUES($1, $2)
+        ON CONFLICT (guild_id) DO UPDATE SET notify_cooldown = $2;
+        ",
+        msg.guild_id.unwrap().0 as i64,
+        duration
+    )
+    .execute(pool)
+    .await?;
+
+    msg.channel_id
+        .say(
+            &ctx.http,
+            format!("Set the notify cooldown to {} hours.", duration),
+        )
+        .await?;
+
+    Ok(())
+}
+
 /// Opens sign-ups.
 ///
 /// **Usage:** `[p]signopen`
@@ -952,6 +1009,12 @@ pub async fn tvm_settings(ctx: &Context, msg: &Message) -> CommandResult {
         None => write!(misc_str, "\nMaximum Players: `12`"),
     }?;
 
+    write!(
+        misc_str,
+        "\nNotify Cooldown: `{}`",
+        settings.notify_cooldown
+    )?;
+
     fields.push(("**Miscellaneous**", misc_str.trim(), false));
 
     msg.channel_id
@@ -991,7 +1054,8 @@ pub async fn tvm_settings(ctx: &Context, msg: &Message) -> CommandResult {
     unlock_settings,
     tvm_settings,
     set_all_roles,
-    set_all_channels
+    set_all_channels,
+    notifycd
 )]
 #[default_command(tvm_settings)]
 #[description("Commands for hosts to set TvM settings.")]
