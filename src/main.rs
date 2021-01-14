@@ -3,8 +3,8 @@ mod events;
 mod utils;
 
 use commands::{help::help_command, host::*, logging::*, meta::*, owner::*, setup::*, user::*};
+use dotenv::dotenv;
 use events::{message_delete_bulk_handler, message_delete_handler, message_update_handler};
-use log::{error, info};
 use serenity::{
     async_trait,
     client::bridge::gateway::{GatewayIntents, ShardManager},
@@ -16,15 +16,12 @@ use serenity::{
         StandardFramework,
     },
     http::Http,
-    model::{
-        event::ResumedEvent,
-        gateway::Ready,
-        prelude::*,
-    },
+    model::{event::ResumedEvent, gateway::Ready, prelude::*},
     prelude::*,
 };
 use sqlx::PgPool;
 use std::{collections::HashSet, env, sync::Arc};
+use tracing::{error, info, instrument};
 use utils::database::{initialize_tables, obtain_pool};
 
 #[macro_use]
@@ -58,10 +55,12 @@ impl EventHandler for Handler {
         info!("Connected as {}", ready.user.name);
     }
 
+    #[instrument(skip(self))]
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Resumed");
     }
 
+    #[instrument(skip(self, ctx))]
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
         // We'll initialize the database tables for a guild if it's new.
         if !is_new {
@@ -71,6 +70,7 @@ impl EventHandler for Handler {
         initialize_tables(&ctx, &guild).await;
     }
 
+    #[instrument(skip(self, ctx))]
     async fn message_update(
         &self,
         ctx: Context,
@@ -81,20 +81,24 @@ impl EventHandler for Handler {
         message_update_handler(ctx, old_if_available, new, event).await;
     }
 
+    #[instrument(skip(self, ctx))]
     async fn message_delete(
         &self,
         ctx: Context,
         channel_id: ChannelId,
         deleted_message_id: MessageId,
+        _: Option<GuildId>,
     ) {
         message_delete_handler(ctx, channel_id, deleted_message_id).await;
     }
 
+    #[instrument(skip(self, ctx))]
     async fn message_delete_bulk(
         &self,
         ctx: Context,
         channel_id: ChannelId,
         multiple_deleted_messages_ids: Vec<MessageId>,
+        _: Option<GuildId>,
     ) {
         message_delete_bulk_handler(ctx, channel_id, multiple_deleted_messages_ids).await;
     }
@@ -112,8 +116,9 @@ async fn my_help(
     help_command(&ctx, &msg, args, help_options, groups, owners).await
 }
 
-// This is for errors that happen before command execution.
+/// This is for errors that happen before command execution.
 #[hook]
+#[instrument]
 async fn on_dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
     match error {
         DispatchError::NotEnoughArguments { min, given } => {
@@ -143,13 +148,18 @@ async fn on_dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
                 .say(ctx, "This command can only be used in DMs.")
                 .await;
         }
-        DispatchError::IgnoredBot {} => {
-            return;
-        }
         DispatchError::CheckFailed(_, reason) => {
-            if let Reason::User(r) = reason {
-                let _ = msg.channel_id.say(ctx, r).await;
-            }
+            match reason {
+                Reason::User(r) => {
+                    let _ = msg.channel_id.say(ctx, r).await;
+                }
+                Reason::Log(r) => info!("{}", r),
+                Reason::UserAndLog { user, log } => {
+                    let _ = msg.channel_id.say(ctx, user).await;
+                    info!("{}", log);
+                }
+                _ => error!("Unknown check error."),
+            };
         }
         _ => {
             error!("Unhandled dispatch error: {:?}", error);
@@ -161,6 +171,7 @@ async fn on_dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
 ///
 /// It's used here to handle errors that happen in the middle of the command.
 #[hook]
+#[instrument]
 async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResult) {
     if let Err(why) = &error {
         error!("Error while running command {}", &cmd_name);
@@ -178,6 +189,7 @@ async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResul
 
 /// Sets a custom prefix for a guild.
 #[hook]
+#[instrument]
 pub async fn dynamic_prefix(ctx: &Context, guild_id: &Option<GuildId>) -> Option<String> {
     let prefix = if let Some(id) = guild_id {
         let data = ctx.data.read().await;
@@ -208,13 +220,10 @@ pub async fn dynamic_prefix(ctx: &Context, guild_id: &Option<GuildId>) -> Option
 }
 
 #[tokio::main]
+#[instrument]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // This will load the environment variables located at `./.env`, relative to
-    // the CWD. See `./.env.example` for an example on how to structure this.
-    kankyo::load(false).expect("Failed to load .env file");
-
-    // Initialize the logger to use environment variables.
-    env_logger::init();
+    dotenv().expect("Failed to load `.env` file.");
+    tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment.");
 
@@ -237,9 +246,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let framework = StandardFramework::new()
         .configure(|c| {
             c.owners(owners)
-                .dynamic_prefix(|ctx, msg| Box::pin(async move {
-                    dynamic_prefix(ctx, &msg.guild_id).await
-                }))
+                .dynamic_prefix(|ctx, msg| {
+                    Box::pin(async move { dynamic_prefix(ctx, &msg.guild_id).await })
+                })
                 .with_whitespace(true)
                 .on_mention(Some(bot_id))
         })
@@ -253,10 +262,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .group(&OWNER_GROUP)
         .help(&MY_HELP);
 
-    let mut client = Client::new(&token)
+    let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler)
-        .add_intent({
+        .intents({
             let mut intents = GatewayIntents::all();
             intents.remove(GatewayIntents::DIRECT_MESSAGE_TYPING);
             intents.remove(GatewayIntents::GUILD_MESSAGE_TYPING);

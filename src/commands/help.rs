@@ -14,8 +14,8 @@ use crate::utils::{
 };
 use serenity::{
     framework::standard::{
-        help_commands::has_all_requirements, Args, CheckResult, Command, CommandError,
-        CommandGroup, CommandResult, HelpOptions,
+        help_commands::has_all_requirements, Args, Command, CommandError, CommandGroup,
+        CommandResult, HelpOptions,
     },
     model::prelude::{Message, UserId},
     prelude::Context,
@@ -413,7 +413,7 @@ async fn command_check(
         return false;
     }
 
-    if !has_all_requirements(&ctx.cache, command.options, msg).await {
+    if !has_all_requirements(&ctx, command.options, msg).await {
         return false;
     }
 
@@ -421,8 +421,9 @@ async fn command_check(
         if check.check_in_help {
             let mut args = Args::new("", &[]);
 
-            if let CheckResult::Failure(_) =
-                (check.function)(ctx, msg, &mut args, command.options).await
+            if (check.function)(ctx, msg, &mut args, command.options)
+                .await
+                .is_err()
             {
                 return false;
             }
@@ -432,8 +433,9 @@ async fn command_check(
         if check.check_in_help {
             let mut args = Args::new("", &[]);
 
-            if let CheckResult::Failure(_) =
-                (check.function)(ctx, msg, &mut args, command.options).await
+            if (check.function)(ctx, msg, &mut args, command.options)
+                .await
+                .is_err()
             {
                 return false;
             }

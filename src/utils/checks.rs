@@ -2,7 +2,7 @@
 
 use crate::ConnectionPool;
 use serenity::{
-    framework::standard::{macros::check, CheckResult},
+    framework::standard::{macros::check, Reason},
     model::channel::Message,
     prelude::Context,
 };
@@ -10,16 +10,16 @@ use serenity::{
 // Check to restrict a command to server admins and game hosts.
 #[check]
 #[name = "is_host_or_admin"]
-pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> CheckResult {
+pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Result<(), Reason> {
     let guild = match msg.guild(&ctx).await {
         Some(i) => i,
-        None => return CheckResult::new_user("Command cannot be used in DMs."),
+        None => return Err(Reason::User("Command cannot be used in DMs.".to_string())),
     };
 
     if let Some(m) = guild.members.get(&msg.author.id) {
         if let Ok(p) = m.permissions(&ctx).await {
             if p.administrator() {
-                return CheckResult::Success;
+                return Ok(());
             }
         }
     };
@@ -37,25 +37,27 @@ pub(crate) async fn is_host_or_admin_check(ctx: &Context, msg: &Message) -> Chec
         if let Some(i) = r.host_role_id {
             if let Ok(res) = msg.author.has_role(&ctx, guild.id, i as u64).await {
                 if res {
-                    return CheckResult::Success;
+                    return Ok(());
                 }
             }
         }
     };
 
-    CheckResult::new_user("You don't have enough permissions to run this command.")
+    Err(Reason::User(
+        "You don't have enough permissions to run this command.".to_string(),
+    ))
 }
 
 // Check to restrict command usage when TvM settings are locked.
 #[check]
 #[name = "tvmset_lock"]
-pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> CheckResult {
+pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> Result<(), Reason> {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();
 
     let guild_id = match msg.guild_id {
         Some(i) => i.0,
-        None => return CheckResult::new_user("Command cannot be used in DMs."),
+        None => return Err(Reason::User("Command cannot be used in DMs.".to_string())),
     };
 
     let setting = match sqlx::query!(
@@ -77,8 +79,8 @@ pub(crate) async fn tvmset_lock_check(ctx: &Context, msg: &Message) -> CheckResu
     };
 
     if !setting {
-        CheckResult::Success
+        Ok(())
     } else {
-        CheckResult::new_user("TvM settings are locked!")
+        Err(Reason::User("TvM settings are locked!".to_string()))
     }
 }

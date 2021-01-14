@@ -1,9 +1,9 @@
 // Obtain database pool from values in the `config.toml` file.
 
 use crate::ConnectionPool;
-use log::error;
 use serenity::{model::prelude::Guild, prelude::Context};
 use sqlx::postgres::{PgPool, PgPoolOptions};
+use tracing::{error, instrument};
 
 pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Error>> {
     let pool = PgPoolOptions::new()
@@ -14,6 +14,7 @@ pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Err
     Ok(pool)
 }
 
+#[instrument(skip(ctx))]
 pub async fn initialize_tables(ctx: &Context, guild: &Guild) {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<ConnectionPool>().unwrap();

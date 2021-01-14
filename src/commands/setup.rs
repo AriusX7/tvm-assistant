@@ -1,12 +1,9 @@
 // Commands related to TvM's setup are defined here.
 
 use crate::{
-    utils::{
-        checks::*, constants::EMBED_COLOUR, converters::*, database::initialize_tables,
-    },
+    utils::{checks::*, constants::EMBED_COLOUR, converters::*, database::initialize_tables},
     ConnectionPool,
 };
-use log::error;
 use serde::{Deserialize, Serialize};
 use serenity::{
     framework::standard::{
@@ -19,6 +16,7 @@ use serenity::{
 use serenity_utils::prompt::yes_or_no_prompt;
 use sqlx::types::Json;
 use std::fmt::Write;
+use tracing::error;
 
 #[derive(Deserialize)]
 pub struct Settings {

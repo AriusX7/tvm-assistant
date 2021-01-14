@@ -17,7 +17,6 @@ use crate::{
 };
 use chrono::{offset::Utc, Datelike, Duration};
 use indexmap::IndexMap;
-use log::error;
 use regex::Regex;
 use serenity::{
     framework::standard::{
@@ -35,6 +34,7 @@ use serenity::{
 };
 use sqlx::types::Json;
 use std::{borrow::Cow, collections::HashMap, fmt::Write, fs};
+use tracing::error;
 
 struct SignSettings {
     cycle: Json<Cycle>,
@@ -434,8 +434,8 @@ async fn get_member_and_add_role<'a>(
     }
 
     let mut member = match msg.member(ctx).await {
-        Some(m) => m,
-        None => return Err(Cow::from("I couldn't fetch details about you.")),
+        Ok(m) => m,
+        Err(_) => return Err(Cow::from("I couldn't fetch details about you.")),
     };
 
     match member.add_role(ctx, role).await {
@@ -586,13 +586,13 @@ async fn all_players(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
         }
     };
 
-    let players: Vec<String> = if !args.message().contains("--all") {
+    let players: Vec<_> = if !args.message().contains("--all") {
         guild
             .members
             .values()
             .filter_map(|m| {
                 if m.roles.contains(&role.id) {
-                    Some(m.mention())
+                    Some(m.mention().to_string())
                 } else {
                     None
                 }
@@ -600,12 +600,13 @@ async fn all_players(ctx: &Context, msg: &Message, args: Args) -> CommandResult 
             .collect()
     } else {
         let player_ids = res.players.unwrap_or_default();
+
         guild
             .members
             .values()
             .filter_map(|m| {
                 if player_ids.contains(&(m.user.id.0 as i64)) {
-                    Some(m.mention())
+                    Some(m.mention().to_string())
                 } else {
                     None
                 }
@@ -694,12 +695,12 @@ async fn all_replacements(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    let players: Vec<String> = guild
+    let players: Vec<_> = guild
         .members
         .values()
         .filter_map(|m| {
             if m.roles.contains(&role.id) {
-                Some(m.mention())
+                Some(m.mention().to_string())
             } else {
                 None
             }
