@@ -3,9 +3,7 @@
 // We only log message edits and deletions.
 
 use crate::{
-    utils::{
-        converters::get_channel_from_id, message::get_jump_url,
-    },
+    utils::{converters::get_channel_from_id, message::get_jump_url},
     ConnectionPool,
 };
 use chrono::Utc;
@@ -17,7 +15,7 @@ use serenity::{
     },
     prelude::Context,
 };
-use serenity_utils::{prelude::EmbedBuilder, formatting::text_to_file};
+use serenity_utils::{formatting::text_to_file, prelude::EmbedBuilder};
 
 use tracing::{error, instrument};
 
@@ -112,13 +110,14 @@ pub(crate) async fn message_update_handler(
     embed
         .add_field(("Channel", channel.mention(), false))
         .set_footer_with(|f| f.set_text(format!("Message ID: {}", new.id.0)))
-        .set_author_with(|a| a.set_name(format!(
+        .set_author_with(|a| {
+            a.set_name(format!(
                 "{} ({}) - Edited Message",
                 new.author.tag(),
                 new.author.id.0
             ))
             .set_icon_url(new.author.face())
-        );
+        });
 
     let files = vec![old_file, new_file].into_iter().flatten();
 
@@ -322,17 +321,15 @@ async fn cached_message_handler(ctx: &Context, message: &Message) {
         embed.add_field(("Attachments", file_names, true));
     }
     embed
-        .set_footer_with(|f| f.set_text(format!(
-            "Author ID: {}",
-            message.author.id.0
-        )))
-        .set_author_with(|a| a.set_name(format!(
+        .set_footer_with(|f| f.set_text(format!("Author ID: {}", message.author.id.0)))
+        .set_author_with(|a| {
+            a.set_name(format!(
                 "{} ({}) - Deleted Message",
                 message.author.tag(),
                 message.author.id.0
             ))
-            .set_icon_url(message.author.face()),
-        );
+            .set_icon_url(message.author.face())
+        });
 
     let msg = &log_channel
         .send_message(&ctx.http, |m| m.set_embed(embed.to_create_embed()))
@@ -433,7 +430,11 @@ fn get_added_fields_and_file<'a>(
         );
         embed.add_field((format!("{} Content", iden), text, true));
 
-        Some(text_to_file(&content, Some(format!("{}.txt", iden.to_ascii_lowercase())), false))
+        Some(text_to_file(
+            &content,
+            Some(format!("{}.txt", iden.to_ascii_lowercase())),
+            false,
+        ))
     } else {
         embed.add_field((format!("{} Content", iden), &content, true));
 

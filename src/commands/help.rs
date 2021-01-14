@@ -10,16 +10,16 @@ use crate::utils::constants::{COMMANDS_REFERENCE, EMBED_COLOUR, QUICKSTART};
 use serenity::{
     builder::CreateMessage,
     framework::standard::{
-        help_commands::has_all_requirements, Args, Command, CommandGroup,
-        CommandResult, HelpOptions,
+        help_commands::has_all_requirements, Args, Command, CommandGroup, CommandResult,
+        HelpOptions,
     },
     model::prelude::{Message, UserId},
     prelude::Context,
 };
 use serenity_utils::{
-    menu::{Menu, MenuOptions},
     builder::embed::{EmbedBuilder, EmbedFieldBuilder},
     formatting::{pagify, PagifyOptions},
+    menu::{Menu, MenuOptions},
 };
 use std::{collections::HashSet, fmt::Write};
 
@@ -221,7 +221,8 @@ async fn send_group_help(
     }
 
     let mut embed = EmbedBuilder::new();
-        embed.set_description(format_description(
+    embed
+        .set_description(format_description(
             group.options.description,
             true,
             bot_name,
@@ -263,7 +264,8 @@ async fn send_command_help(
     );
 
     let mut embed = EmbedBuilder::new();
-        embed.set_title(format!("Command: {}", name))
+    embed
+        .set_title(format!("Command: {}", name))
         .set_description(desc)
         .set_footer_with(|f| f.set_text(get_footer(main_prefix)));
 
@@ -283,7 +285,10 @@ fn get_footer(prefix: &str) -> String {
     )
 }
 
-fn group_embed_fields(fields: &[EmbedFieldBuilder], max_chars: usize) -> Vec<Vec<&EmbedFieldBuilder>> {
+fn group_embed_fields(
+    fields: &[EmbedFieldBuilder],
+    max_chars: usize,
+) -> Vec<Vec<&EmbedFieldBuilder>> {
     let mut current_group = Vec::new();
     let mut ret = Vec::new();
 
@@ -324,7 +329,11 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &EmbedBuilder
         offset += footer.text.len();
     }
 
-    offset += embed.description.as_ref().map(|d| d.len()).unwrap_or_default();
+    offset += embed
+        .description
+        .as_ref()
+        .map(|d| d.len())
+        .unwrap_or_default();
     offset += embed.title.as_ref().map(|t| t.len()).unwrap_or_default();
 
     if page_char_limit + offset > 5500 {
@@ -341,7 +350,9 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &EmbedBuilder
         // `embed` may have fields already set in. We need to clear them.
         embed.fields.clear();
 
-        embed.set_colour(EMBED_COLOUR).set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
+        embed
+            .set_colour(EMBED_COLOUR)
+            .set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
 
         let mut page = CreateMessage::default();
         page.set_embed(embed.to_create_embed());
@@ -354,7 +365,9 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &EmbedBuilder
         // `embed` may have fields already set in. We need to clear them.
         embed.fields.clear();
 
-        embed.set_colour(EMBED_COLOUR).set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
+        embed
+            .set_colour(EMBED_COLOUR)
+            .set_author_with(|a| a.set_name(&author_name).set_icon_url(&user.face()));
 
         // Just some weird adjustment.
         let mut prev_field: Option<&EmbedFieldBuilder> = None;
@@ -387,7 +400,12 @@ async fn make_and_send_embeds(ctx: &Context, msg: &Message, embed: &EmbedBuilder
 
         if total_pages > 1 {
             if let Some(footer) = &mut embed.footer {
-                footer.set_text(format!("Page {} of {} | {}", i + 1, total_pages, &footer.text));
+                footer.set_text(format!(
+                    "Page {} of {} | {}",
+                    i + 1,
+                    total_pages,
+                    &footer.text
+                ));
             }
         }
 
