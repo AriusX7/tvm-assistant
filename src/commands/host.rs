@@ -5,6 +5,7 @@ use crate::{
     utils::{checks::*, constants::EMBED_COLOUR, converters::*},
     ConnectionPool,
 };
+use chrono::offset::Utc;
 use rand::Rng;
 use serenity::{
     framework::standard::{
@@ -14,7 +15,7 @@ use serenity::{
     model::{misc::Mentionable, prelude::*},
     prelude::*,
 };
-use serenity_utils::prompt::yes_or_no_prompt;
+use serenity_utils::{conversion::Conversion, prompt::yes_or_no_prompt};
 use sqlx::types::Json;
 use std::fmt::Write;
 
@@ -1410,6 +1411,39 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+#[command]
+#[min_args(1)]
+async fn announce(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let arg = args.current().unwrap();
+    let channel_id = if let Some(c) =
+        GuildChannel::from_guild_id_and_str(ctx, msg.guild_id.unwrap(), arg).await
+    {
+        args.advance();
+
+        c.id
+    } else {
+        msg.channel_id
+    };
+
+    if args.rest().is_empty() {
+        msg.channel_id
+            .say(&ctx.http, "Expected message to announce!")
+            .await?;
+    }
+
+    channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.description(args.rest())
+                    .timestamp(Utc::now().to_rfc3339())
+                    .colour(EMBED_COLOUR)
+            })
+        })
+        .await?;
+
+    Ok(())
+}
+
 #[group("Host Utility")]
 #[description = "Utility commands for hosts."]
 #[only_in("guilds")]
@@ -1425,6 +1459,7 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     night,
     kill_player,
     player_list,
-    current
+    current,
+    announce
 )]
 struct Utilities;
