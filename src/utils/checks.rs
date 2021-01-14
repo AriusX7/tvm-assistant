@@ -1,4 +1,4 @@
-// Checks to run before command invocation are defined here.
+//! Checks to run before command invocation are defined here.
 
 use crate::ConnectionPool;
 use serenity::{

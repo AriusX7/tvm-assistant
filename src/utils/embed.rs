@@ -1,4 +1,4 @@
-// An alternative `Embed` builder. It allows for easy customisation and chaining.
+//! An alternative `Embed` builder. It allows for easy customisation and chaining.
 
 use serenity::{
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp},

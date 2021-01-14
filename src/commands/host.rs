@@ -1,4 +1,4 @@
-// All host utility commands and related functions are defined here.
+//! All host utility commands and related functions are defined here.
 
 use crate::{
     commands::setup::Cycle,

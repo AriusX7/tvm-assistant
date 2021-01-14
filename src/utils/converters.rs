@@ -1,5 +1,5 @@
-// Functions and wrappers to get `Role`, Member`, etc., from
-// user input and/or database values.
+//! Functions and wrappers to get `Role`, Member`, etc., from
+//! user input and/or database values.
 
 use serenity::{
     model::{channel::GuildChannel, prelude::*},

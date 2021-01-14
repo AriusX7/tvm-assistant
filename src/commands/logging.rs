@@ -1,5 +1,5 @@
-// This module contains commands related to message logging.
-// Message related events fired by serenity are handled in `/src/events.rs`.
+//! This module contains commands related to message logging.
+//! Message related events fired by serenity are handled in `/src/events.rs`.
 
 use crate::{
     events::{is_allowed_channel, LogSettings},

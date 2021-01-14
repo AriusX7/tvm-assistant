@@ -1,4 +1,4 @@
-// Owner-only commands are defined in this module.
+//! Owner-only commands are defined in this module.
 
 use crate::ShardManagerContainer;
 use serenity::{

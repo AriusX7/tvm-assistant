@@ -1,4 +1,4 @@
-// Various functions to format text and files.
+//! Various functions to format text and files.
 
 use comrak::{
     markdown_to_html, ComrakExtensionOptions, ComrakOptions, ComrakParseOptions,

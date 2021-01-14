@@ -1,4 +1,4 @@
-// Meta commands related to the bot directly are defined here.
+//! Meta commands related to the bot directly are defined here.
 
 use crate::{utils::constants::*, ConnectionPool, ShardManagerContainer};
 use serenity::{
