@@ -1,0 +1,217 @@
+# This is based on ripgrep:
+# https://github.com/BurntSushi/ripgrep/blob/master/.github/workflows/release.yml
+
+# The way this works is a little weird. But basically, the create-release job
+# runs purely to initialize the GitHub release itself. Once done, the upload
+# URL of the release is saved as an artifact.
+#
+# The build-release job runs only once create-release is finished. It gets
+# the release upload URL by downloading the corresponding artifact (which was
+# uploaded by create-release). It then builds the release executables for each
+# supported platform and attaches them as release assets to the previously
+# created release.
+#
+# The key here is that we create the release only once.
+
+name: release
+on:
+  push:
+    tags:
+    - '/^v\d+\.\d+\.\d+.*$/'
+jobs:
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create artifacts directory
+        run: mkdir artifacts
+
+      - name: Get the release version from the tag
+        if: env.TVM_ASSISTANT_VERSION == ''
+        run: |
+          # Apparently, this is the right way to get a tag name. Really?
+          #
+          # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
+          echo "TVM_ASSISTANT_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "version is: ${{ env.TVM_ASSISTANT_VERSION }}"
+
+      - name: Create GitHub release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.TVM_ASSISTANT_VERSION }}
+          release_name: ${{ env.TVM_ASSISTANT_VERSION }}
+
+      - name: Save release upload URL to artifact
+        run: echo "${{ steps.release.outputs.upload_url }}" > artifacts/release-upload-url
+
+      - name: Save version number to artifact
+        run: echo "${{ env.TVM_ASSISTANT_VERSION }}" > artifacts/release-version
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: artifacts
+          path: artifacts
+
+  build-release:
+    name: build-release
+    needs: ['create-release']
+    runs-on: ${{ matrix.os }}
+    env:
+      # For some builds, we use cross to test on 32-bit and big-endian
+      # systems.
+      CARGO: cargo
+      # When CARGO is set to CROSS, this is set to `--target matrix.target`.
+      TARGET_FLAGS:
+      # When CARGO is set to CROSS, TARGET_DIR includes matrix.target.
+      TARGET_DIR: ./target
+      # Features to use. When cross is used, `vendored-openssl` is enabled
+      FEATURES:
+      # Emit backtraces on panics.
+      RUST_BACKTRACE: 1
+    strategy:
+      matrix:
+        build:
+        - linux-gnu
+        - linux-musl
+        - arm
+        - aarch
+        - macos
+        - win-msvc
+        - win-gnu
+        - win32-msvc
+        - win32-gnu
+        include:
+        - build: linux-gnu
+          os: ubuntu-18.04
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+        - build: linux-musl
+          os: ubuntu-18.04
+          rust: stable
+          target: x86_64-unknown-linux-musl
+        - build: arm
+          os: ubuntu-18.04
+          rust: stable
+          target: arm-unknown-linux-gnueabi
+        - build: aarch
+          os: ubuntu-18.04
+          rust: stable
+          target: aarch64-unknown-linux-gnu
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: x86_64-apple-darwin
+        - build: win-msvc
+          os: windows-2019
+          rust: stable
+          target: x86_64-pc-windows-msvc
+        - build: win-gnu
+          os: windows-2019
+          rust: stable-x86_64-gnu
+          target: x86_64-pc-windows-gnu
+        - build: win32-msvc
+          os: windows-2019
+          rust: stable
+          target: i686-pc-windows-msvc
+        - build: win32-gnu
+          os: windows-2019
+          rust: stable-gnu
+          target: i686-pc-windows-gnu
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        profile: minimal
+        override: true
+        target: ${{ matrix.target }}
+
+    - name: Use cache
+      uses: Swatinem/rust-cache@v1
+
+    - name: Use Cross
+      if: runner.os != 'Windows'
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+        echo "FEATURES=--features vendored-openssl" >> $GITHUB_ENV
+
+    - name: Show command used for Cargo
+      run: |
+        echo "cargo command is: ${{ env.CARGO }}"
+        echo "target flag is: ${{ env.TARGET_FLAGS }}"
+        echo "target dir is: ${{ env.TARGET_DIR }}"
+        echo "features are: ${{ env.FEATURES }}"
+
+    - name: Get release download URL
+      uses: actions/download-artifact@v1
+      with:
+        name: artifacts
+        path: artifacts
+
+    - name: Set release upload URL and release version
+      shell: bash
+      run: |
+        release_upload_url="$(cat artifacts/release-upload-url)"
+        echo "RELEASE_UPLOAD_URL=$release_upload_url" >> $GITHUB_ENV
+        echo "release upload url: $RELEASE_UPLOAD_URL"
+        release_version="$(cat artifacts/release-version)"
+        echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+        echo "release version: $RELEASE_VERSION"
+
+    - name: Build release binary
+      run: ${{ env.CARGO }} build --release ${{ env.FEATURES }} ${{ env.TARGET_FLAGS }}
+
+    - name: Strip release binary (linux and macos)
+      if: matrix.build == 'linux-gnu' || matrix.build == 'linux-musl' || matrix.build == 'macos'
+      run: strip "target/${{ matrix.target }}/release/tvm-assistant"
+
+    # - name: Strip release binary (arm)
+    #   if: matrix.build == 'linux-arm'
+    #   run: |
+    #     docker run --rm -v \
+    #       "$PWD/target:/target:Z" \
+    #       rustembedded/cross:arm-unknown-linux-gnueabihf \
+    #       arm-linux-gnueabihf-strip \
+    #       /target/arm-unknown-linux-gnueabihf/release/tvm-assistant
+
+    - name: Build archive
+      shell: bash
+      run: |
+        staging="tvm-assistant-${{ env.RELEASE_VERSION }}-${{ matrix.target }}"
+        mkdir -p "$staging"
+
+        cp {README.md,.env.example,LICENSE} "$staging/"
+        cp -R migrations "$staging/"
+
+        if [ "${{ matrix.os }}" = "windows-2019" ]; then
+          cp "target/release/tvm-assistant.exe" "$staging/"
+          7z a "$staging.zip" "$staging"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        else
+          cp "target/${{ matrix.target }}/release/tvm-assistant" "$staging/"
+          tar czf "$staging.tar.gz" "$staging"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+        fi
+
+    - name: Upload release archive
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ env.RELEASE_UPLOAD_URL }}
+        asset_path: ${{ env.ASSET }}
+        asset_name: ${{ env.ASSET }}
+        asset_content_type: application/octet-stream
