@@ -94,7 +94,6 @@ jobs:
         - build: win32-gnu
           os: windows-2019
           rust: stable-i686-pc-windows-gnu
-          target: i686-pc-windows-gnu
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
