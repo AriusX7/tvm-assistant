@@ -69,6 +69,14 @@ Searches for a page on [the Town of Salem wikia/fandom](https://town-of-salem.fa
 
 Shows a user's voting history. If the host has used `cycle` commands to create cycle channels, the bot will know which is the latest voting channel. The results will be displayed by considering the votes in that channel. If the bot is unable to detect a voting channel, you'll have to pass the channel before the user. Alias: `-vh [channel] <user>`
 
+### `-top [channel]`
+
+Sends jump url for the first message of a channel. You can supply a channel to get it's first message. If you don't supply a channel, the bot will send link for the first message of the channel where the command is used.
+
+### `-notify <msg>`
+
+Pings the Players role to notify them of a message. `msg` is the message that is displayed. It supports all Discord markdown features. The command has a cooldown to discourage spam mentions. The cooldown defaults to once per 6 hours in a particular server. A server's cooldown can be changed by a host by using the `` command.
+
 ## Roles
 
 These commands require administrator permission or the host role.
@@ -171,6 +179,10 @@ Unlocks TvM settings.
 
 Shows TvM settings. Alias: `-tvm show`
 
+### `-tvm notifycd <duration>`
+
+Sets the cooldown for the notify command. `duration` must be number of **hours**. The default cooldown is 6 hours.
+
 ## Cycle Commands
 
 These commands require administrator permission or the host role.
@@ -252,3 +264,12 @@ Sometimes the count of signups kept by the bot may not be able to the number of 
 ### `-started <cycle_number>`
 
 Sometimes the bot can't determine if the game started or not. Use this to fix the issue. `cycle_number` is the number of cycle currently on.
+
+### `-current`
+
+Shows information about the current cycle.
+
+### `-announce [channel] <msg>`
+
+Announces a message in an embed. You can optionally specify a channel by its ID or mention to send the
+embed announcement in that channel. The actual `msg` can contain hyperlinks in addition to normal Discord Markdown formatting.
