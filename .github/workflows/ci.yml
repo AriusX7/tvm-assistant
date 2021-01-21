@@ -2,7 +2,13 @@
 # https://github.com/BurntSushi/ripgrep/blob/master/.github/workflows/ci.yml
 
 name: ci
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+        - '**'
 jobs:
   test:
     name: test
@@ -87,7 +93,7 @@ jobs:
           target: i686-pc-windows-msvc
         - build: win32-gnu
           os: windows-2019
-          rust: stable-gnu
+          rust: stable-i686-pc-windows-gnu
           target: i686-pc-windows-gnu
     steps:
     - name: Checkout repository
