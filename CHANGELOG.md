@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2021-01-21
+
+### Commands
+
+- Added `notify`, `tvm notifycd` and `announce` commands.
+- Fixed typo in `ping` command.
+
+### Dependencies
+
+- Added `serenity_utils`.
+- Updated `serenity` to version `0.10`.
+- Updated `tokio` to version `1.0`.
+- Updated rest of the ecosystem to be compatible with tokio `1.0`.
+- Bump versions of other dependencies to latest compatible.
+
+### Documentation
+
+- Added documentation for new and missing commands.
+
+### Misc
+
+- Migrated from Travis and AppVeyor to Github Actions.
+- Removed some architectures from release builds.
+- Added `rustfmt` and `cargo clippy` lints.
+- More bug fixes.
+
+## [0.2.1] - 2020-07-25
+
+### Misc
+
+- Fix migrations
+
 ## [0.2.1-alpha] - 2020-07-25
 
 ### Commands
@@ -47,6 +79,13 @@ Between 0.1.0 and 0.2.0, a lot of commands were fixed and new commands were adde
 
 - Added `players bigint[]` column to config table
 
-## [0.1.0] - 2020-06-19
+## 0.1.0 - 2020-06-19
 
 Released first version of Rust rewrite of TvM Assistant.
+
+<!-- TAGS -->
+
+[0.2.2]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1-alpha...v0.2.1
+[0.2.1-alpha]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.0...v0.2.1-alpha
+[0.2.0]: https://github.com/AriusX7/tvm-assistant/compare/v0.1.0...v0.2.0
