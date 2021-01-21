@@ -222,52 +222,9 @@ ALTER DATABASE database_name OWNER to user_name;
 
 `user_name` should be same as the user name you entered in the env file.
 
-Now, you'll need to create 3 tables. Use the following commands to create them:
+Now, you'll need to create some tables. Please see the `sql` files in `migrations` folder of the repository and run all the commands in the files.
 
-*Table to store TvM configuration and states data:*
-
-```sql
-CREATE TABLE config (
-  guild_id bigint NOT NULL PRIMARY KEY,
-  host_role_id bigint,
-  player_role_id bigint,
-  spec_role_id bigint,
-  repl_role_id bigint,
-  dead_role_id bigint,
-  na_channel_id bigint,
-  signups_channel_id bigint,
-  can_change_na bool,
-  tvmset_lock bool,
-  signups_on bool,
-  total_players smallint,
-  total_signups smallint,
-  na_submitted bigint [],
-  cycle jsonb,
-  players bigint []
-);
-```
-
-*Table to store logging configuration:*
-
-```sql
-CREATE TABLE logging (
-  guild_id bigint NOT NULL PRIMARY KEY,
-  log_channel_id bigint,
-  blacklist_channel_ids bigint [],
-  whitelist_channel_ids bigint []
-);
-```
-
-*Table to store custom prefixes:*
-
-```sql
-CREATE TABLE prefixes (
-    guild_id bigint NOT NULL PRIMARY KEY,
-    prefix text
-);
-```
-
-Make sure you use these commands **inside** `psql`.
+Make sure you use those commands **inside** `psql`.
 
 ---
 
