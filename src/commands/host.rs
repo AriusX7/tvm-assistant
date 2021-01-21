@@ -1408,6 +1408,15 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Announces a message in an embed.
+///
+/// **Usage:** `[p]announce [channel] <msg>`
+///
+/// You can optionally specify a channel by its ID or mention to send the
+/// embed announcement in that channel. The actual `msg` can contain hyperlinks
+/// in addition to normal Discord Markdown formatting.
+///
+/// I need the permission to embed links in the specified channel.
 #[command]
 #[min_args(1)]
 async fn announce(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
