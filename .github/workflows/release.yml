@@ -17,7 +17,7 @@ name: release
 on:
   push:
     tags:
-    - '/^v\d+\.\d+\.\d+.*$/'
+    - 'v\d+\.\d+\.\d+.*'
 jobs:
   create-release:
     name: create-release
