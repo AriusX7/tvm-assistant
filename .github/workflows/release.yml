@@ -17,7 +17,8 @@ name: release
 on:
   push:
     tags:
-    - 'v\d+\.\d+\.\d+.*'
+    # Apparently GitHub Actions does not support full regex...
+    - 'v[0-9]+.[0-9]+.[0-9]+'
 jobs:
   create-release:
     name: create-release
