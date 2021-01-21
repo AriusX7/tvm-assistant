@@ -83,7 +83,6 @@ jobs:
         - win-msvc
         - win-gnu
         - win32-msvc
-        - win32-gnu
         include:
         - build: linux-gnu
           os: ubuntu-18.04
@@ -117,10 +116,6 @@ jobs:
           os: windows-2019
           rust: stable
           target: i686-pc-windows-msvc
-        - build: win32-gnu
-          os: windows-2019
-          rust: stable-gnu
-          target: i686-pc-windows-gnu
 
     steps:
     - name: Checkout repository
