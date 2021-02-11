@@ -2,13 +2,16 @@
 
 use crate::ConnectionPool;
 use serenity::{model::prelude::Guild, prelude::Context};
+use sqlx::{
+    migrate::Migrator,
+    postgres::{PgPool, PgPoolOptions},
+};
 use std::env;
-use sqlx::{postgres::{PgPool, PgPoolOptions}, migrate::Migrator};
 use tracing::{error, instrument};
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
-const RUN_MIGRATIONS_FLAGS: (&'static str, &'static str) = ("--run-migrations", "-m");
+const RUN_MIGRATIONS_FLAGS: (&str, &str) = ("--run-migrations", "-m");
 
 pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Error>> {
     let pool = PgPoolOptions::new()
@@ -20,7 +23,7 @@ pub async fn obtain_pool(pg_url: &str) -> Result<PgPool, Box<dyn std::error::Err
 }
 
 pub async fn run_migrations(pool: &PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    if env::args().find(|a| a == RUN_MIGRATIONS_FLAGS.0 || a == RUN_MIGRATIONS_FLAGS.1).is_some() {
+    if env::args().any(|a| a == RUN_MIGRATIONS_FLAGS.0 || a == RUN_MIGRATIONS_FLAGS.1) {
         MIGRATOR.run(pool).await?;
     }
 
