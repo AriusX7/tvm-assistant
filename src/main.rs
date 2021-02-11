@@ -22,7 +22,7 @@ use serenity::{
 use sqlx::PgPool;
 use std::{collections::HashSet, env, sync::Arc};
 use tracing::{error, info, instrument};
-use utils::database::{initialize_tables, obtain_pool};
+use utils::database::{initialize_tables, obtain_pool, run_migrations};
 
 #[macro_use]
 extern crate lazy_static;
@@ -284,6 +284,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Add the database connection to the data.
         let pool = obtain_pool(&database_url).await?;
+        run_migrations(&pool).await?;
         data.insert::<ConnectionPool>(pool);
 
         // Add reqwest client to the data.
