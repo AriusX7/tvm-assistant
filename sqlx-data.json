@@ -849,18 +849,18 @@
         },
         {
           "ordinal": 12,
+          "name": "total_signups",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 13,
           "name": "na_submitted",
           "type_info": "Int8Array"
         },
         {
-          "ordinal": 13,
+          "ordinal": 14,
           "name": "cycle",
           "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 14,
-          "name": "total_signups",
-          "type_info": "Int2"
         },
         {
           "ordinal": 15,
@@ -895,7 +895,7 @@
         true,
         true,
         true,
-        true
+        false
       ]
     }
   },
