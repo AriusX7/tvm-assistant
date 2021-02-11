@@ -181,6 +181,8 @@ DATABASE_URL=postgres://arius:12345678@localhost:5432/tvm_assist
 
 Now, we'll create the database and all the necessary tables.
 
+If you're building in release mode, then you can pass the `--run-migrations` (or `-m` for short) flag to run the migrations programmatically. You can skip the migration steps if you use the flag.
+
 ##### Using `sqlx-cli`
 
 The recommended way to do that is to use `sqlx-cli`. It is a command line tool that allows us to set up databases with very few commands.
