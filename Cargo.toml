@@ -1,6 +1,6 @@
 [package]
 name = "tvm-assistant"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["AriusX7 <icyligii@gmail.com>"]
 edition = "2018"
 license = "MIT"

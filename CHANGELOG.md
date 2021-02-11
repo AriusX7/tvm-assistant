@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2021-02-11
+
+### Dependencies
+
+- Updated `sqlx` to version `0.5.1`
+- Bumped versions of other dependencies to latest compatible.
+
+### Misc
+
+- Added `--run-migrations` flag to run migrations programmatically.
+
 ## [0.3.0] - 2021-01-21
 
 ### Commands
@@ -85,6 +96,7 @@ Released first version of Rust rewrite of TvM Assistant.
 
 <!-- TAGS -->
 
+[0.3.1]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1-alpha...v0.2.1
 [0.2.1-alpha]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.0...v0.2.1-alpha
