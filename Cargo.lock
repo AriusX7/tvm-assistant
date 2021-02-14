@@ -2232,7 +2232,7 @@ dependencies = [
 
 [[package]]
 name = "tvm-assistant"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "ammonia",
  "chrono",
