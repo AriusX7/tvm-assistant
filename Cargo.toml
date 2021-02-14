@@ -19,7 +19,6 @@ lazy_static = "1.4.0"
 indexmap = "1.6.1"
 futures = "0.3.12"
 chrono = "0.4.19"
-comrak = "0.9.0"
 ammonia = "3.1.0"
 serenity_utils = "0.6.1"
 dotenv = "0.15.0"
@@ -57,3 +56,7 @@ features = ["derive"]
 [dependencies.reqwest]
 version = "0.11.0"
 features = ["json"]
+
+[dependencies.comrak]
+version = "0.9.0"
+default-features = false
