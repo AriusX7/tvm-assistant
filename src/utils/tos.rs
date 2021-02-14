@@ -3,42 +3,53 @@
 use reqwest::Client;
 use serde::Deserialize;
 
-const BASE_URL: &str = "https://town-of-salem.fandom.com/api/v1/";
+const TOS_BASE: &str = "https://town-of-salem.fandom.com/wiki";
+const TOS_API_BASE: &str = "https://town-of-salem.fandom.com/api.php";
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct Resp {
-    pub(crate) items: Vec<Item>,
+struct Resp {
+    #[serde(rename = "query")]
+    search: Search,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct Item {
-    pub(crate) id: u32,
+struct Search {
+    #[serde(rename = "search")]
+    items: Vec<Item>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Item {
+    title: String,
+}
+
+pub(crate) struct SearchResult {
     pub(crate) title: String,
     pub(crate) url: String,
 }
 
-pub(crate) async fn get_items(client: &Client, input: &str) -> Option<Vec<Item>> {
-    let req_builder =
-        client.get(format!("{}/Search/List?query={}&limit=5", BASE_URL, input).as_str());
-    let res = match req_builder.send().await {
-        Ok(res) => res,
-        Err(_) => return None,
-    };
+pub(crate) async fn search(client: &Client, query: &str) -> Result<Vec<SearchResult>, Box<dyn std::error::Error + Sync + Send>> {
+    let request_builder = client.get(TOS_API_BASE).query(&[
+        ("action", "query"),
+        ("list", "search"),
+        ("srsearch", query),
+        ("srlimit", "5"),
+        ("format", "json"),
+        ("srprop", ""),
+    ]);
 
-    match res.json::<Resp>().await {
-        Ok(v) => {
-            let mut res = Vec::new();
-            for item in v.items {
-                if item
-                    .title
-                    .to_ascii_lowercase()
-                    .contains(&input.to_ascii_lowercase())
-                {
-                    res.push(item);
-                }
-            }
-            Some(res)
+    let response = request_builder.send().await?.json::<Resp>().await?;
+
+    Ok(response.search.items.into_iter().filter_map(|i| {
+        if i.title.to_ascii_lowercase().contains(&query.to_ascii_lowercase()) {
+            let url = format!("{}/{}", TOS_BASE, &i.title.replace(" ", "_"));
+            Some(SearchResult {
+                url,
+                title: i.title,
+            })
+        } else {
+            None
         }
-        Err(_) => None,
-    }
+    })
+    .collect())
 }

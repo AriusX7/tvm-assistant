@@ -11,7 +11,7 @@ use crate::{
         converters::{get_channel, get_channel_from_id, get_member, get_role, to_channel, to_role},
         formatting::{capitalize, clean_user_mentions, markdown_to_files},
         message::get_jump_url_with_guild,
-        tos::get_items,
+        tos,
     },
     ConnectionPool, RequestClient,
 };
@@ -1475,20 +1475,21 @@ async fn tos_wiki(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let client = data.get::<RequestClient>().unwrap();
 
-    let items = get_items(client, input).await.unwrap_or_default();
+    let results = tos::search(client, input).await?;
 
     let mut desc = String::new();
-    if !items.is_empty() {
-        if items.len() == 1 {
-            msg.channel_id.say(&ctx.http, items[0].url.clone()).await?;
-            return Ok(());
-        }
-        for (idx, item) in items.iter().enumerate() {
-            let _ = write!(desc, "\n{}. [{}]({})", idx + 1, item.title, item.url);
-        }
-    } else {
+    if results.is_empty() {
         msg.channel_id.say(&ctx.http, "No results found.").await?;
         return Ok(());
+    } else {
+        if results.len() == 1 {
+            msg.channel_id.say(&ctx.http, &results[0].url).await?;
+            return Ok(());
+        }
+
+        for (idx, item) in results.iter().enumerate() {
+            let _ = write!(desc, "\n{}. [{}]({})", idx + 1, item.title, item.url);
+        }
     }
 
     msg.channel_id
