@@ -28,7 +28,10 @@ pub(crate) struct SearchResult {
     pub(crate) url: String,
 }
 
-pub(crate) async fn search(client: &Client, query: &str) -> Result<Vec<SearchResult>, Box<dyn std::error::Error + Sync + Send>> {
+pub(crate) async fn search(
+    client: &Client,
+    query: &str,
+) -> Result<Vec<SearchResult>, Box<dyn std::error::Error + Sync + Send>> {
     let request_builder = client.get(TOS_API_BASE).query(&[
         ("action", "query"),
         ("list", "search"),
@@ -40,16 +43,23 @@ pub(crate) async fn search(client: &Client, query: &str) -> Result<Vec<SearchRes
 
     let response = request_builder.send().await?.json::<Resp>().await?;
 
-    Ok(response.search.items.into_iter().filter_map(|i| {
-        if i.title.to_ascii_lowercase().contains(&query.to_ascii_lowercase()) {
-            let url = format!("{}/{}", TOS_BASE, &i.title.replace(" ", "_"));
-            Some(SearchResult {
-                url,
-                title: i.title,
-            })
-        } else {
-            None
-        }
-    })
-    .collect())
+    Ok(response
+        .search
+        .items
+        .into_iter()
+        .filter_map(|i| {
+            if i.title
+                .to_ascii_lowercase()
+                .contains(&query.to_ascii_lowercase())
+            {
+                let url = format!("{}/{}", TOS_BASE, &i.title.replace(" ", "_"));
+                Some(SearchResult {
+                    url,
+                    title: i.title,
+                })
+            } else {
+                None
+            }
+        })
+        .collect())
 }
