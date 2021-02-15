@@ -9,9 +9,7 @@ use std::{fmt::Write as FmtWrite, fs, io::Write, path::Path};
 use tokio::process::Command;
 use tracing::{error, instrument};
 
-lazy_static! {
-    static ref CSS: String = fs::read_to_string("style.css").unwrap();
-}
+static CSS: &str = include_str!("../../style.css");
 
 /// Returns string after capitalizing first letter and making all others lowercase.
 /// Only works for strings with ASCII letters (a-z | A-Z).
@@ -86,7 +84,7 @@ pub(crate) async fn markdown_to_files<'a>(
         }
     };
 
-    let _ = write!(file, "<style>{}</style>{}", *CSS, ammonia::clean(&html));
+    let _ = write!(file, "<style>{}</style>{}", CSS, ammonia::clean(&html));
 
     let image_child = Command::new("wkhtmltoimage")
         // Max quality
