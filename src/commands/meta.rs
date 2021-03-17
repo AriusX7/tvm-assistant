@@ -214,7 +214,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     };
 
     let shard_latency_str = match runner.latency {
-        Some(ms) => format!("Shard latency is {:.2}ms.", ms.as_micros() as f32 / 1000.0),
+        Some(ms) => format!("Shard latency is {:.2} ms.", ms.as_micros() as f32 / 1000.0),
         _ => String::from("Heartbeat not sent yet."),
     };
 
@@ -225,7 +225,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     message
         .edit(ctx, |m| {
             m.content(format!(
-                "Pong! That took {}ms. {}",
+                "Pong! That took {} ms. {}",
                 post_latency, shard_latency_str
             ))
         })
