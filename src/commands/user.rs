@@ -24,6 +24,7 @@ use serenity::{
         macros::{command, group},
         Args, CommandError, CommandResult,
     },
+    futures::StreamExt,
     model::{
         misc::Mentionable,
         prelude::{
@@ -34,7 +35,12 @@ use serenity::{
     utils::{content_safe, ContentSafeOptions},
 };
 use sqlx::types::Json;
-use std::{borrow::Cow, collections::HashMap, fmt::Write, fs};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    fmt::Write,
+    fs,
+};
 use tracing::error;
 
 struct SignSettings {
@@ -54,7 +60,7 @@ enum Roles {
     Replacement,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 enum Vote {
     VTL(String),
     UnVTL(String),
@@ -861,13 +867,13 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let players: Vec<&User> = if !all {
+    let players: HashSet<_> = if !all {
         guild
             .members
-            .values()
-            .filter_map(|m| {
+            .into_iter()
+            .filter_map(|(_, m)| {
                 if m.roles.contains(&role.id) {
-                    Some(&m.user)
+                    Some(m.user)
                 } else {
                     None
                 }
@@ -877,10 +883,10 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let player_ids = data.players.unwrap_or_default();
         guild
             .members
-            .values()
-            .filter_map(|m| {
+            .into_iter()
+            .filter_map(|(_, m)| {
                 if player_ids.contains(&(m.user.id.0 as i64)) {
-                    Some(&m.user)
+                    Some(m.user)
                 } else {
                     None
                 }
@@ -888,34 +894,16 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .collect()
     };
 
-    let mut messages = match channel.messages(&ctx.http, |ret| ret.limit(100)).await {
-        Ok(m) => m,
-        Err(_) => return Err(CommandError::from("I was unable to get messages.")),
-    };
-    // Messages are ordered from new to oldest. We need to reverse that.
-    messages.reverse();
-
     let mut user_votes = HashMap::new();
-    for message in &messages {
-        if !players.contains(&&message.author) {
-            continue;
-        }
-        let vote_res = get_vote_from_message(clean_user_mentions(&message));
-        if let Some(vote) = vote_res {
-            match vote {
-                Vote::VTL(u) => {
-                    user_votes.insert(&message.author, u);
-                }
-                Vote::UnVTL(u) => {
-                    if user_votes.get(&message.author).unwrap_or(&"".to_string()) == &u
-                        && !u.is_empty()
-                    {
-                        user_votes.remove_entry(&message.author);
-                    }
-                }
-                Vote::VTNL => {
-                    user_votes.insert(&message.author, "VTNL".to_string());
-                }
+    let mut messages = channel.id.messages_iter(&ctx).boxed();
+    while let Some(message) = messages.next().await {
+        if let Ok(message) = message {
+            if !players.contains(&message.author) || user_votes.contains_key(&message.author) {
+                continue;
+            }
+            let vote_res = get_vote_from_message(clean_user_mentions(&message));
+            if let Some(vote) = vote_res {
+                user_votes.insert(message.author, Some(vote));
             }
         }
     }
@@ -927,8 +915,7 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // of `vote -> Vec<user>`. We use an `IndexMap` because ordering matters now.
     // Instead of using 4 separate vectors with users, we used a `user -> vote` `HashMap`
     // because keys in hash maps are unique. It makes sure a user's vote is only counted once.
-
-    let mut votes: IndexMap<String, Vec<&User>> = IndexMap::new();
+    let mut votes: IndexMap<_, Vec<_>> = IndexMap::new();
     for (user, vote) in user_votes {
         if votes.contains_key(&vote) {
             votes.get_mut(&vote).unwrap().push(user);
@@ -941,41 +928,42 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     votes.sort_by(|_, v1, _, v2| v1.len().cmp(&v2.len()).reverse());
 
     // Remove and add "VTNL" and "No vote" for ordering
-    if let Some(v) = votes.shift_remove("VTNL") {
-        votes.insert(String::from("VTNL"), v);
+    if let Some(v) = votes.shift_remove(&Some(Vote::VTNL)) {
+        votes.insert(Some(Vote::VTNL), v);
     };
-    if let Some(v) = votes.shift_remove("No vote") {
-        votes.insert(String::from("No vote"), v);
+    if let Some(v) = votes.shift_remove(&None) {
+        votes.insert(None, v);
     };
 
     // String to display formatted votes.
     let mut votes_str = String::new();
-    for (idx, vote) in votes.iter().enumerate() {
-        let voters: Vec<_> = vote
-            .1
+    for (idx, (vote, voters)) in votes.iter().enumerate() {
+        let voters: Vec<_> = voters
             .iter()
             .map(|m| format!("{}#{}", m.name, m.discriminator))
             .collect();
-        let vote = vote.0.as_str();
 
         match vote {
-            "VTNL" => write!(
-                votes_str,
-                "\n\n**VTNL** - {} ({})",
-                voters.len(),
-                voters.join(", ")
-            )?,
-            "No vote" => write!(
+            Some(v) => match v {
+                Vote::VTNL => write!(
+                    votes_str,
+                    "\n\n**VTNL** - {} ({})",
+                    voters.len(),
+                    voters.join(", ")
+                )?,
+                Vote::VTL(s) => write!(
+                    votes_str,
+                    "\n{}. **{}** - {} ({})",
+                    idx + 1,
+                    s,
+                    voters.len(),
+                    voters.join(", ")
+                )?,
+                _ => (),
+            },
+            None => write!(
                 votes_str,
                 "\n\n**Not voting** - {} ({})",
-                voters.len(),
-                voters.join(", ")
-            )?,
-            _ => write!(
-                votes_str,
-                "\n{}. **{}** - {} ({})",
-                idx + 1,
-                vote,
                 voters.len(),
                 voters.join(", ")
             )?,
@@ -1037,10 +1025,10 @@ fn get_vote_from_message(content: String) -> Option<Vote> {
     }
 }
 
-fn get_non_voters<'a>(players: Vec<&'a User>, votes: &mut HashMap<&'a User, String>) {
+fn get_non_voters(players: HashSet<User>, votes: &mut HashMap<User, Option<Vote>>) {
     for player in players {
-        if !votes.contains_key(player) {
-            votes.insert(player, String::from("No vote"));
+        if !votes.contains_key(&player) {
+            votes.insert(player, None);
         }
     }
 }
