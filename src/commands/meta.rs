@@ -34,7 +34,7 @@ async fn invite(ctx: &Context, msg: &Message) -> CommandResult {
                 e.description(
                     format!(
                         "
-                        Invite TvM Assistant to your bot by [clicking here]({}).\
+                        Invite TvM Assistant to your server by [clicking here]({}).\
                         \n\nInviting the bot will give it some management permissions. \
                         You can review them when you use the link.\
                         \n\nFor questions, suggestions and feedback, join [the support server]({}).

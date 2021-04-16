@@ -53,7 +53,7 @@ impl EventHandler for Handler {
     #[instrument(skip(self, ready))]
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
-        info!("Version: {}", VERSION);
+        info!("Version {}", VERSION);
     }
 
     #[instrument(skip(self))]
