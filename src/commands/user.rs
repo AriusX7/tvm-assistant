@@ -17,6 +17,7 @@ use crate::{
 };
 use chrono::{offset::Utc, Datelike, Duration};
 use indexmap::IndexMap;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use serenity::{
     framework::standard::{
@@ -1013,23 +1014,23 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 fn get_vote_from_message(content: String) -> Option<Vote> {
-    lazy_static! {
-        static ref VOTE_RE: Regex =
-            Regex::new(r"^[\*_~|]*[Vv][Tt][Ll][\*_~|]*[\s\*_~|]+([^\*_~|]+)").unwrap();
-        static ref UN_VOTE_RE: Regex =
-            Regex::new(r"^[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*[\s\*_~|]+([^\*_~|]+)?").unwrap();
-        static ref VTNL_RE: Regex = Regex::new(r"^[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap();
-    }
+    let vote_re: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"^[\*_~|]*[Vv][Tt][Ll][\*_~|]*[\s\*_~|]+([^\*_~|]+)").unwrap());
+    let un_vote_re: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(r"^[\*_~|]*[Uu][Nn]-?[Vv][Tt][Ll][\*_~|]*[\s\*_~|]+([^\*_~|]+)?").unwrap()
+    });
+    let vtnl_re: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"^[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap());
 
-    if let Some(c) = VOTE_RE.captures(content.as_str()) {
+    if let Some(c) = vote_re.captures(content.as_str()) {
         return Some(Vote::VTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
-    if let Some(c) = UN_VOTE_RE.captures(content.as_str()) {
+    if let Some(c) = un_vote_re.captures(content.as_str()) {
         return Some(Vote::UnVTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
-    if VTNL_RE.is_match(content.as_str()) {
+    if vtnl_re.is_match(content.as_str()) {
         Some(Vote::VTNL)
     } else {
         None

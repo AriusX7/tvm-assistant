@@ -24,8 +24,7 @@ use std::{collections::HashSet, env, sync::Arc};
 use tracing::{error, info, instrument};
 use utils::database::{initialize_tables, obtain_pool, run_migrations};
 
-#[macro_use]
-extern crate lazy_static;
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 struct ShardManagerContainer;
 
@@ -51,8 +50,10 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    #[instrument(skip(self, ready))]
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
+        info!("Version: {}", VERSION);
     }
 
     #[instrument(skip(self))]
@@ -63,11 +64,9 @@ impl EventHandler for Handler {
     #[instrument(skip(self, ctx))]
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
         // We'll initialize the database tables for a guild if it's new.
-        if !is_new {
-            return;
+        if is_new {
+            initialize_tables(&ctx, &guild).await;
         }
-
-        initialize_tables(&ctx, &guild).await;
     }
 
     #[instrument(skip(self, ctx))]
@@ -191,7 +190,7 @@ async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResul
 #[hook]
 #[instrument]
 pub async fn dynamic_prefix(ctx: &Context, guild_id: &Option<GuildId>) -> Option<String> {
-    let prefix = if let Some(id) = guild_id {
+    if let Some(id) = guild_id {
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -204,19 +203,14 @@ pub async fn dynamic_prefix(ctx: &Context, guild_id: &Option<GuildId>) -> Option
 
         if let Ok(data) = res {
             if let Some(p) = data.prefix {
-                p
-            } else {
-                "-".to_string()
+                return Some(p);
             }
         } else {
             error!("I couldn't query the database for getting guild prefix.");
-            "-".to_string()
         }
-    } else {
-        "-".to_string()
-    };
+    }
 
-    Some(prefix)
+    Some("-".to_string())
 }
 
 #[tokio::main]
@@ -251,6 +245,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .with_whitespace(true)
                 .on_mention(Some(bot_id))
+                .case_insensitivity(true)
         })
         .on_dispatch_error(on_dispatch_error)
         .after(after)
@@ -291,6 +286,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let client = reqwest::Client::new();
         data.insert::<RequestClient>(client);
     }
+
+    let shard_manager = client.shard_manager.clone();
+
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Could not register ctrl+c handler");
+        info!("Shutting down!");
+        shard_manager.lock().await.shutdown_all().await;
+    });
 
     if let Err(why) = client.start().await {
         error!("Client error: {:?}", why);

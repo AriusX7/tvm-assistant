@@ -12,10 +12,13 @@ readme = "README.md"
 opt-level = 3
 codegen-units = 1
 
+[profile.dev]
+split-debuginfo = "unpacked"
+
 [dependencies]
 serde_json = "1.0.62"
 regex = "1.4.3"
-lazy_static = "1.4.0"
+once_cell = "1.7.2"
 indexmap = "1.6.1"
 futures = "0.3.12"
 chrono = "0.4.19"
@@ -36,7 +39,7 @@ version = "1.2.0"
 features = ["full"]
 
 [dependencies.serenity]
-version = "0.10.2"
+version = "0.10.5"
 # We need `collector` in addition to the default features.
 features = ["collector"]
 
@@ -58,5 +61,5 @@ version = "0.11.0"
 features = ["json"]
 
 [dependencies.comrak]
-version = "0.9.0"
+version = "0.10.0"
 default-features = false
