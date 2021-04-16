@@ -4,80 +4,94 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2021-04-16
+
+### Commands
+
+* Improved `votecount` command
+
+### Dependencies
+
+* Switched to `once_cell` from `lazy_static`
+
+### Misc
+
+* Fixed typos and improved some formatting
+
 ## [0.3.2] - 2021-02-14
 
 ### Commands
 
-- Fixed `tos` command
+* Fixed `tos` command
 
 ### Dependencies
 
-- Disabled default features of `comrak`
+* Disabled default features of `comrak`
 
 ## [0.3.1] - 2021-02-11
 
 ### Dependencies
 
-- Updated `sqlx` to version `0.5.1`
-- Bumped versions of other dependencies to latest compatible.
+* Updated `sqlx` to version `0.5.1`
+* Bumped versions of other dependencies to latest compatible.
 
 ### Misc
 
-- Added `--run-migrations` flag to run migrations programmatically.
+* Added `--run-migrations` flag to run migrations programmatically.
 
 ## [0.3.0] - 2021-01-21
 
 ### Commands
 
-- Added `notify`, `tvm notifycd` and `announce` commands.
-- Fixed typo in `ping` command.
+* Added `notify`,   `tvm notifycd` and `announce` commands.
+* Fixed typo in `ping` command.
 
 ### Dependencies
 
-- Added `serenity_utils`.
-- Updated `serenity` to version `0.10`.
-- Updated `tokio` to version `1.0`.
-- Updated rest of the ecosystem to be compatible with tokio `1.0`.
-- Bump versions of other dependencies to latest compatible.
+* Added `serenity_utils`.
+* Updated `serenity` to version `0.10`.
+* Updated `tokio` to version `1.0`.
+* Updated rest of the ecosystem to be compatible with tokio `1.0`.
+* Bump versions of other dependencies to latest compatible.
 
 ### Documentation
 
-- Added documentation for new and missing commands.
+* Added documentation for new and missing commands.
 
 ### Misc
 
-- Migrated from Travis and AppVeyor to Github Actions.
-- Removed some architectures from release builds.
-- Added `rustfmt` and `cargo clippy` lints.
-- More bug fixes.
+* Migrated from Travis and AppVeyor to Github Actions.
+* Removed some architectures from release builds.
+* Added `rustfmt` and `cargo clippy` lints.
+* More bug fixes.
 
 ## [0.2.1] - 2020-07-25
 
 ### Misc
 
-- Fix migrations
+* Fix migrations
 
 ## [0.2.1-alpha] - 2020-07-25
 
 ### Commands
 
-- Added ping command
+* Added ping command
 
 ### Dependencies
 
-- Updated serenity to PR 905
-- Updated sqlx to use master (v0.4-pre)
-- Added vendored-openssl
-- Updated others to use latest version
+* Updated serenity to PR 905
+* Updated sqlx to use master (v0.4-pre)
+* Added vendored-openssl
+* Updated others to use latest version
 
 ### Documentation
 
-- Updated documentation to include info about precompiled binaries
+* Updated documentation to include info about precompiled binaries
 
 ### Misc
 
-- Added Travis and Appveyor configuration to publish precompiled binaries
-- Added database migrations
+* Added Travis and Appveyor configuration to publish precompiled binaries
+* Added database migrations
 
 ## [0.2.0] - 2020-07-20
 
@@ -85,20 +99,20 @@ Between 0.1.0 and 0.2.0, a lot of commands were fixed and new commands were adde
 
 ### Commands
 
-- Added `--all` flag to `votecount` and `players` command
-- Added support server link to `info` command
-- Fixed small bugs and typos with others commands
+* Added `--all` flag to `votecount` and `players` command
+* Added support server link to `info` command
+* Fixed small bugs and typos with others commands
 
 ### Documentation
 
-- Added documentation for previous/outdated versions
-- Improve self-hosting documentation
-- Added documentation for missing commands
-- Updated documentation for some commands
+* Added documentation for previous/outdated versions
+* Improve self-hosting documentation
+* Added documentation for missing commands
+* Updated documentation for some commands
 
 ### Database
 
-- Added `players bigint[]` column to config table
+* Added `players bigint[]` column to config table
 
 ## 0.1.0 - 2020-06-19
 
@@ -106,6 +120,7 @@ Released first version of Rust rewrite of TvM Assistant.
 
 <!-- TAGS -->
 
+[0.3.3]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.3...v0.3.3
 [0.3.2]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1...v0.3.0
