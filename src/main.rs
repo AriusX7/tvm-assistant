@@ -24,7 +24,7 @@ use std::{collections::HashSet, env, sync::Arc};
 use tracing::{error, info, instrument};
 use utils::database::{initialize_tables, obtain_pool, run_migrations};
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 struct ShardManagerContainer;
 

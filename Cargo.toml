@@ -44,7 +44,7 @@ version = "0.10.5"
 features = ["collector"]
 
 [dependencies.sqlx]
-version = "0.5.1"
+version = "0.5.2"
 default-features = false
 features = ["runtime-tokio-rustls", "macros", "postgres", "uuid", "offline", "json", "chrono", "migrate"]
 

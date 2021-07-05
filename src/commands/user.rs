@@ -62,9 +62,9 @@ enum Roles {
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 enum Vote {
-    VTL(String),
-    UnVTL(String),
-    VTNL,
+    Vtl(String),
+    UnVtl(String),
+    Vtnl,
 }
 
 struct VoteData {
@@ -928,8 +928,8 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     votes.sort_by(|_, v1, _, v2| v1.len().cmp(&v2.len()).reverse());
 
     // Remove and add "VTNL" and "No vote" for ordering
-    if let Some(v) = votes.shift_remove(&Some(Vote::VTNL)) {
-        votes.insert(Some(Vote::VTNL), v);
+    if let Some(v) = votes.shift_remove(&Some(Vote::Vtnl)) {
+        votes.insert(Some(Vote::Vtnl), v);
     };
     if let Some(v) = votes.shift_remove(&None) {
         votes.insert(None, v);
@@ -945,13 +945,13 @@ async fn vote_count(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
         match vote {
             Some(v) => match v {
-                Vote::VTNL => write!(
+                Vote::Vtnl => write!(
                     votes_str,
                     "\n\n**VTNL** - {} ({})",
                     voters.len(),
                     voters.join(", ")
                 )?,
-                Vote::VTL(s) => write!(
+                Vote::Vtl(s) => write!(
                     votes_str,
                     "\n{}. **{}** - {} ({})",
                     idx + 1,
@@ -1011,15 +1011,15 @@ fn get_vote_from_message(content: String) -> Option<Vote> {
         Lazy::new(|| Regex::new(r"^[\*_~|]*[Vv][Tt][Nn][Ll][\*_~|]*").unwrap());
 
     if let Some(c) = vote_re.captures(content.as_str()) {
-        return Some(Vote::VTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
+        return Some(Vote::Vtl(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
     if let Some(c) = un_vote_re.captures(content.as_str()) {
-        return Some(Vote::UnVTL(capitalize(c.get(1).map_or("", |m| m.as_str()))));
+        return Some(Vote::UnVtl(capitalize(c.get(1).map_or("", |m| m.as_str()))));
     };
 
     if vtnl_re.is_match(content.as_str()) {
-        Some(Vote::VTNL)
+        Some(Vote::Vtnl)
     } else {
         None
     }
@@ -1027,9 +1027,7 @@ fn get_vote_from_message(content: String) -> Option<Vote> {
 
 fn get_non_voters(players: HashSet<User>, votes: &mut HashMap<User, Option<Vote>>) {
     for player in players {
-        if !votes.contains_key(&player) {
-            votes.insert(player, None);
-        }
+        votes.entry(player).or_insert(None);
     }
 }
 
@@ -1697,9 +1695,9 @@ async fn vote_history(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
         if let Some(vote) = get_vote_from_message(clean_user_mentions(message)) {
             count += 1;
             let _ = match vote {
-                Vote::VTL(u) => write!(votes_str, "\n{}. **VTL {}**", count, u),
-                Vote::UnVTL(u) => write!(votes_str, "\n{}. **UnVTL {}**", count, u),
-                Vote::VTNL => write!(votes_str, "\n{}. **VTNL**", count),
+                Vote::Vtl(u) => write!(votes_str, "\n{}. **VTL {}**", count, u),
+                Vote::UnVtl(u) => write!(votes_str, "\n{}. **UnVTL {}**", count, u),
+                Vote::Vtnl => write!(votes_str, "\n{}. **VTNL**", count),
             };
 
             let _ = write!(
