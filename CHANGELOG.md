@@ -120,7 +120,7 @@ Released first version of Rust rewrite of TvM Assistant.
 
 <!-- TAGS -->
 
-[0.3.3]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.3...v0.3.3
+[0.3.3]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/AriusX7/tvm-assistant/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/AriusX7/tvm-assistant/compare/v0.2.1...v0.3.0
